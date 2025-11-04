@@ -27,6 +27,7 @@ npm install vue@3
 npm install vue-router@4
 
 orrrr I think just this works fine too
+
 npm install
 npm install vue-router
 ```

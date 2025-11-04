@@ -16,6 +16,7 @@ const username = ref("");
       <router-link to="/closet">
         ><button class="proceed-btn">Proceed to Closet</button></router-link
       >
+      <!-- router Link is where we define where it is going based on the path names from index.js -->
     </div>
   </div>
 </template>

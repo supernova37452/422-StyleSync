@@ -9,6 +9,7 @@ from my understanding, each component in vue would be a screen, this is the clos
 -->
 <template>
   <router-view />
+  <!-- this is where the router will inject the components based on the route -->
   <div class="header-bar">
     <button class="button">{{ username }}</button>
     <h1>Welcome to StyleSync</h1>
