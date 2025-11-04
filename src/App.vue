@@ -1,16 +1,16 @@
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
 
-const username = ref('Layla') //this are reactive variables, we can inject anything here but obvi must write the logic 4 that
-const weather = ref('62')
+const username = ref("Layla"); //this are reactive variables, we can inject anything here but obvi must write the logic 4 that
+const weather = ref("62");
 </script>
 <!-- okay so here is our app.vue: this is the top parent component! 
 from my understanding, each component in vue would be a screen, this is the closet view for now
 -->
-
 <template>
+  <router-view />
   <div class="header-bar">
-    <button class="button">{{ username }}</button> 
+    <button class="button">{{ username }}</button>
     <h1>Welcome to StyleSync</h1>
     <button class="button">{{ weather }}</button>
   </div>
