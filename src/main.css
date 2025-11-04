@@ -1,0 +1,52 @@
+  .header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex: 1; 
+    text-align: center;
+    margin: 0;
+    font-weight: 500; 
+  }
+  
+
+  button {
+    background-color: #6c67c6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .all-groups {
+    display: flex;
+    justify-content: center;
+    gap: 60px;/* spacing the categorries */
+    padding: 40px;
+    flex-wrap: wrap; 
+  }
+
+  .one-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .box-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 boxes/row */
+    gap: 20px;
+  }
+  
+  .box {
+    background-color: #eeeeee;
+    aspect-ratio: 1 / 1; /*perfect squares YASSS*/
+    width: 100px;   /*this is the overall size of each box*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+  }
