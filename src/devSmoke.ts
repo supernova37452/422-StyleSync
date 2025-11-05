@@ -1,3 +1,5 @@
+// this file is a test file just to see if my firebase setup is working
+
 import { auth, db } from "./lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";

@@ -1,3 +1,5 @@
+// typescript to set up the firebase app and export auth and db instances
+
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";

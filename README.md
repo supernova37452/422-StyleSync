@@ -30,6 +30,13 @@ orrrr I think just this works fine too
 
 npm install
 npm install vue-router
+
+```
+
+## Firebase Installation
+
+```sh
+npm i firebase
 ```
 
 ### Compile and Hot-Reload for Development

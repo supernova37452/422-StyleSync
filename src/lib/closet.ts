@@ -1,3 +1,4 @@
+// typescript to handle closet-related firestore operations
 import { db } from "./firebase";
 import {
   doc,

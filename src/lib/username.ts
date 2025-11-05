@@ -1,3 +1,4 @@
+// typescript to handle username normalization and claiming in Firestore
 import { db } from "./firebase";
 import {
   doc,
