@@ -1,14 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
+import { computed } from "vue";
+import { userStore } from "@/stores/userStore";
 
-const username = ref("Layla"); //this are reactive variables, we can inject anything here but obvi must write the logic 4 that
+const username = computed(() => userStore.username || "Guest"); //this are reactive variables, we can inject anything here but obvi must write the logic 4 that
+
 const weather = ref("62");
 </script>
 <!-- okay so here is our app.vue: this is the top parent component! 
 from my understanding, each component in vue would be a screen, this is the closet view for now
 -->
 <template>
-  <router-view />
   <!-- this is where the router will inject the components based on the route -->
   <div class="header-bar">
     <button class="button">{{ username }}</button>
