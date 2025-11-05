@@ -1,7 +1,20 @@
 <script setup>
 import { ref } from "vue";
+import { setUsername } from "@/stores/userStore";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const username = ref("");
+
+function proceed() {
+  const u = username.value.trim();
+  if (!u) {
+    alert("Please enter a valid username.");
+    return;
+  }
+  setUsername(u);
+  router.push("/closet");
+}
 </script>
 
 <template>
@@ -13,9 +26,7 @@ const username = ref("");
     <div class="input-section">
       <label for="username">Username:</label>
       <input id="username" v-model="username" placeholder="Enter username" />
-      <router-link to="/closet">
-        ><button class="proceed-btn">Proceed to Closet</button></router-link
-      >
+      <button class="proceed-btn" @click="proceed">Proceed to Closet</button>
       <!-- router Link is where we define where it is going based on the path names from index.js -->
     </div>
   </div>
