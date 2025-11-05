@@ -1,10 +1,16 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./index.js";
-import "./devSmoke"; // just to test firebase setup
 import "./main.css";
 
-import { hydrateUsername } from "./stores/userStore";
-hydrateUsername();
+import { auth } from "./lib/firebase";
+import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
+import { hydrateUser } from "./stores/userStore"; // <-- rename here
+
+onAuthStateChanged(auth, (u) => {
+  if (!u) signInAnonymously(auth).catch(() => {});
+});
+
+hydrateUser(); // <-- rename here
 
 createApp(App).use(router).mount("#app");

@@ -1,19 +1,51 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
-import { setUsername } from "@/stores/userStore";
+import { auth } from "./lib/firebase";
+import { usernameToUid, claimUsernameOrThrow } from "./lib/username";
+import { ensureUserArea } from "./lib/closet";
+import { setUser } from "@/stores/userStore";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 const username = ref("");
+const error = ref("");
 
-function proceed() {
-  const u = username.value.trim();
-  if (!u) {
-    alert("Please enter a valid username.");
+function norm(u) {
+  return u.trim().toLowerCase().replace(/\s+/g, "_");
+}
+
+async function proceed() {
+  error.value = "";
+  const uname = norm(username.value);
+  if (!uname) return;
+
+  const me = auth.currentUser; // this is the anonymous user
+  if (!me) {
+    error.value = "Auth not ready. Try again.";
     return;
   }
-  setUsername(u);
-  router.push("/closet");
+
+  const existingUid = await usernameToUid(uname);
+
+  try {
+    if (!existingUid) {
+      // new username → bind it to THIS anon uid and create /users/{uid}
+      await claimUsernameOrThrow(me.uid, uname);
+      await ensureUserArea(me.uid);
+      setUser(me.uid, uname);
+      router.push("/closet");
+    } else if (existingUid === me.uid) {
+      // you already own this username on this device
+      await ensureUserArea(me.uid);
+      setUser(me.uid, uname);
+      router.push("/closet");
+    } else {
+      // taken by a different uid (likely another device)
+      error.value = "That username is already taken on another device.";
+    }
+  } catch (e) {
+    error.value = e.message ?? String(e);
+  }
 }
 </script>
 
@@ -27,7 +59,7 @@ function proceed() {
       <label for="username">Username:</label>
       <input id="username" v-model="username" placeholder="Enter username" />
       <button class="proceed-btn" @click="proceed">Proceed to Closet</button>
-      <!-- router Link is where we define where it is going based on the path names from index.js -->
+      <p v-if="error" style="color: #c00; margin-top: 8px">{{ error }}</p>
     </div>
   </div>
 </template>
