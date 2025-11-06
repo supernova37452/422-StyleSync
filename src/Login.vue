@@ -1,18 +1,30 @@
 <script setup lang="ts">
-import { ref } from "vue";
+
+
+import { ref, onMounted } from "vue"; 
 import { auth } from "./lib/firebase";
 import { usernameToUid, claimUsernameOrThrow } from "./lib/username";
 import { ensureUserArea } from "./lib/closet";
 import { setUser } from "@/stores/userStore";
 import { useRouter } from "vue-router";
+import { setWeather } from "@/stores/weatherStore";
+import { getCurrentTemperature } from "@/lib/weather.js";
+
+onMounted(async () => {
+  const { temperature, shortForecast } = await getCurrentTemperature("LOT", 77, 70);
+  setWeather(temperature, shortForecast);
+});
 
 const router = useRouter();
 const username = ref("");
 const error = ref("");
 
+
+
 function norm(u) {
   return u.trim().toLowerCase().replace(/\s+/g, "_");
 }
+
 
 async function proceed() {
   error.value = "";
