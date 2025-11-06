@@ -3,16 +3,29 @@ import { ref } from "vue";
 import { computed } from "vue";
 import { userStore } from "@/stores/userStore";
 import { weatherStore } from "@/stores/weatherStore";
+import { uploadClosetImage } from "@/lib/storage";
+import { addClosetItem } from "@/lib/closet";
 
 const temperature = computed(() => weatherStore.temperature);
 
 const username = computed(() => userStore.username || "Guest"); //this are reactive variables, we can inject anything here but obvi must write the logic 4 that
+async function onPickFile(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file || !userStore.uid) return;
 
-
+  const img = await uploadClosetImage(userStore.uid, file);
+  await addClosetItem(userStore.uid, {
+    name: file.name.replace(/\.[^.]+$/, ""),
+    category: "tops",
+    imageURL: img.url, // <- store download URL in Firestore
+    storagePath: img.path,
+  });
+}
 </script>
 <!-- okay so here is our app.vue: this is the top parent component! 
 from my understanding, each component in vue would be a screen, this is the closet view for now
 -->
+
 <template>
   <!-- this is where the router will inject the components based on the route -->
   <div class="header-bar">
@@ -25,19 +38,39 @@ from my understanding, each component in vue would be a screen, this is the clos
       <h3>Tops</h3>
       <div class="box-grid">
         <!-- <div v-for="n in 8" :key="`tops-${n}`" class="box"></div> -->
-        <div v-for="n in 8" :key="`tops-${n}`" :class="['box', n === 8 ? 'plus-in-box' : '']">
-    <RouterLink v-if="n === 8" to="/upload?type=tops" class="plus-box" aria-label="Add a top">+</RouterLink>
+        <div
+          v-for="n in 8"
+          :key="`tops-${n}`"
+          :class="['box', n === 8 ? 'plus-in-box' : '']"
+        >
+          <RouterLink
+            v-if="n === 8"
+            to="/upload?type=tops"
+            class="plus-box"
+            aria-label="Add a top"
+            >+</RouterLink
+          >
+        </div>
       </div>
     </div>
-  </div>
 
     <div class="one-group">
       <h3>Bottoms</h3>
       <div class="box-grid">
         <!-- <div v-for="n in 8" :key="`bottoms-${n}`" class="box"></div> -->
-        <div v-for="n in 8" :key="`tops-${n}`" :class="['box', n === 8 ? 'plus-in-box' : '']">
-    <RouterLink v-if="n === 8" to="/upload?type=bottoms" class="plus-box" aria-label="Add a top">+</RouterLink>
-      </div>
+        <div
+          v-for="n in 8"
+          :key="`tops-${n}`"
+          :class="['box', n === 8 ? 'plus-in-box' : '']"
+        >
+          <RouterLink
+            v-if="n === 8"
+            to="/upload?type=bottoms"
+            class="plus-box"
+            aria-label="Add a top"
+            >+</RouterLink
+          >
+        </div>
       </div>
     </div>
 
@@ -45,9 +78,19 @@ from my understanding, each component in vue would be a screen, this is the clos
       <h3>Shoes</h3>
       <div class="box-grid">
         <!-- <div v-for="n in 8" :key="`shoes-${n}`" class="box"></div> -->
-        <div v-for="n in 8" :key="`tops-${n}`" :class="['box', n === 8 ? 'plus-in-box' : '']">
-    <RouterLink v-if="n === 8" to="/upload?type=shoes" class="plus-box" aria-label="Add a top">+</RouterLink>
-      </div>
+        <div
+          v-for="n in 8"
+          :key="`tops-${n}`"
+          :class="['box', n === 8 ? 'plus-in-box' : '']"
+        >
+          <RouterLink
+            v-if="n === 8"
+            to="/upload?type=shoes"
+            class="plus-box"
+            aria-label="Add a top"
+            >+</RouterLink
+          >
+        </div>
       </div>
     </div>
 
@@ -55,9 +98,19 @@ from my understanding, each component in vue would be a screen, this is the clos
       <h3>Jackets</h3>
       <div class="box-grid">
         <!-- <div v-for="n in 8" :key="`jackets-${n}`" class="box"></div> -->
-        <div v-for="n in 8" :key="`tops-${n}`" :class="['box', n === 8 ? 'plus-in-box' : '']">
-    <RouterLink v-if="n === 8" to="/upload?type=jackets" class="plus-box" aria-label="Add a top">+</RouterLink>
-      </div>
+        <div
+          v-for="n in 8"
+          :key="`tops-${n}`"
+          :class="['box', n === 8 ? 'plus-in-box' : '']"
+        >
+          <RouterLink
+            v-if="n === 8"
+            to="/upload?type=jackets"
+            class="plus-box"
+            aria-label="Add a top"
+            >+</RouterLink
+          >
+        </div>
       </div>
     </div>
 
@@ -65,11 +118,19 @@ from my understanding, each component in vue would be a screen, this is the clos
       <h3>Accessories</h3>
       <div class="box-grid">
         <!-- <div v-for="n in 8" :key="`acc-${n}`" class="box"></div> -->
-        <div v-for="n in 8" :key="`tops-${n}`" :class="['box', n === 8 ? 'plus-in-box' : '']">
-    <RouterLink v-if="n === 8" to="/upload?type=accessories" class="plus-box" aria-label="Add a top">+</RouterLink>
-
-    
-      </div>
+        <div
+          v-for="n in 8"
+          :key="`tops-${n}`"
+          :class="['box', n === 8 ? 'plus-in-box' : '']"
+        >
+          <RouterLink
+            v-if="n === 8"
+            to="/upload?type=accessories"
+            class="plus-box"
+            aria-label="Add a top"
+            >+</RouterLink
+          >
+        </div>
       </div>
     </div>
   </div>

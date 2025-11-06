@@ -1,4 +1,3 @@
-// typescript to handle closet-related firestore operations
 import { db } from "./firebase";
 import {
   doc,
@@ -8,6 +7,25 @@ import {
   collection,
   getDocs,
 } from "firebase/firestore";
+
+export async function addClosetItem(
+  uid: string,
+  data: {
+    name: string;
+    category?: string;
+    imageURL?: string;
+    storagePath?: string;
+    color?: string;
+    tags?: string[];
+  }
+) {
+  const id = crypto.randomUUID();
+  await setDoc(doc(db, "users", uid, "closet", id), {
+    ...data,
+    createdAt: serverTimestamp(),
+  });
+  return id;
+}
 
 export async function ensureUserArea(uid: string) {
   const ref = doc(db, "users", uid);

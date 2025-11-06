@@ -45,6 +45,12 @@ npm i firebase
 npm run dev
 ```
 
+### Photo Packages
+
+```sh
+npm install concurrently --save-dev
+```
+
 ### Compile and Minify for Production
 
 ```sh

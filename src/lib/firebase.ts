@@ -1,9 +1,7 @@
-// typescript to set up the firebase app and export auth and db instances
-
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, signInAnonymously } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-// (you can import getStorage later if/when you use Storage)
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,6 +12,10 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const db = getFirestore(app, "stylesync");
+export const storage = getStorage(app);
+
+// optional: auto-anon sign in from here or in main.js
+signInAnonymously(auth).catch(() => {});
