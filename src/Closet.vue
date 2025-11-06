@@ -1,11 +1,22 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { computed } from "vue";
 import { userStore } from "@/stores/userStore";
+// weather
+import { getCurrentTemperature } from "./lib/weather.js";
+
 
 const username = computed(() => userStore.username || "Guest"); //this are reactive variables, we can inject anything here but obvi must write the logic 4 that
 
-const weather = ref("62");
+
+// weather 
+const weather = ref(null);
+
+onMounted(async () => {
+  weather.value = await getCurrentTemperature("LOT", 77, 70);
+});
+
+
 </script>
 <!-- okay so here is our app.vue: this is the top parent component! 
 from my understanding, each component in vue would be a screen, this is the closet view for now
@@ -15,7 +26,7 @@ from my understanding, each component in vue would be a screen, this is the clos
   <div class="header-bar">
     <button class="button">{{ username }}</button>
     <h1>Welcome to StyleSync</h1>
-    <button class="button">{{ weather }}</button>
+    <button class="button">{{ weather.temperature }}</button>
   </div>
   <div class="all-groups">
     <div class="one-group">

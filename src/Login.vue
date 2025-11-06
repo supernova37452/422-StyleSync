@@ -1,18 +1,23 @@
 <script setup lang="ts">
-import { ref } from "vue";
+
+
+import { ref } from "vue"; 
 import { auth } from "./lib/firebase";
 import { usernameToUid, claimUsernameOrThrow } from "./lib/username";
 import { ensureUserArea } from "./lib/closet";
 import { setUser } from "@/stores/userStore";
 import { useRouter } from "vue-router";
 
+
 const router = useRouter();
 const username = ref("");
 const error = ref("");
 
+
 function norm(u) {
   return u.trim().toLowerCase().replace(/\s+/g, "_");
 }
+
 
 async function proceed() {
   error.value = "";
