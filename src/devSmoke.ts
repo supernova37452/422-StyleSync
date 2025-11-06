@@ -30,4 +30,4 @@ async function smoke(email: string, password: string) {
 
 // @ts-ignore
 (window as any).smoke = smoke;
-console.log("✅ smoke(email, password) is ready.");
+console.log("smoke(email, password) is ready.");

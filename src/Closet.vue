@@ -21,35 +21,52 @@ from my understanding, each component in vue would be a screen, this is the clos
     <div class="one-group">
       <h3>Tops</h3>
       <div class="box-grid">
-        <div v-for="n in 8" :key="`tops-${n}`" class="box"></div>
+        <!-- <div v-for="n in 8" :key="`tops-${n}`" class="box"></div> -->
+        <div v-for="n in 8" :key="`tops-${n}`" :class="['box', n === 8 ? 'plus-in-box' : '']">
+    <RouterLink v-if="n === 8" to="/upload?type=tops" class="plus-box" aria-label="Add a top">+</RouterLink>
       </div>
     </div>
+  </div>
 
     <div class="one-group">
       <h3>Bottoms</h3>
       <div class="box-grid">
-        <div v-for="n in 8" :key="`bottoms-${n}`" class="box"></div>
+        <!-- <div v-for="n in 8" :key="`bottoms-${n}`" class="box"></div> -->
+        <div v-for="n in 8" :key="`tops-${n}`" :class="['box', n === 8 ? 'plus-in-box' : '']">
+    <RouterLink v-if="n === 8" to="/upload?type=bottoms" class="plus-box" aria-label="Add a top">+</RouterLink>
+      </div>
       </div>
     </div>
 
     <div class="one-group">
       <h3>Shoes</h3>
       <div class="box-grid">
-        <div v-for="n in 8" :key="`shoes-${n}`" class="box"></div>
+        <!-- <div v-for="n in 8" :key="`shoes-${n}`" class="box"></div> -->
+        <div v-for="n in 8" :key="`tops-${n}`" :class="['box', n === 8 ? 'plus-in-box' : '']">
+    <RouterLink v-if="n === 8" to="/upload?type=shoes" class="plus-box" aria-label="Add a top">+</RouterLink>
+      </div>
       </div>
     </div>
 
     <div class="one-group">
       <h3>Jackets</h3>
       <div class="box-grid">
-        <div v-for="n in 8" :key="`jackets-${n}`" class="box"></div>
+        <!-- <div v-for="n in 8" :key="`jackets-${n}`" class="box"></div> -->
+        <div v-for="n in 8" :key="`tops-${n}`" :class="['box', n === 8 ? 'plus-in-box' : '']">
+    <RouterLink v-if="n === 8" to="/upload?type=jackets" class="plus-box" aria-label="Add a top">+</RouterLink>
+      </div>
       </div>
     </div>
 
     <div class="one-group">
       <h3>Accessories</h3>
       <div class="box-grid">
-        <div v-for="n in 8" :key="`acc-${n}`" class="box"></div>
+        <!-- <div v-for="n in 8" :key="`acc-${n}`" class="box"></div> -->
+        <div v-for="n in 8" :key="`tops-${n}`" :class="['box', n === 8 ? 'plus-in-box' : '']">
+    <RouterLink v-if="n === 8" to="/upload?type=accessories" class="plus-box" aria-label="Add a top">+</RouterLink>
+
+    
+      </div>
       </div>
     </div>
   </div>
