@@ -1,20 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import { computed } from "vue";
 import { userStore } from "@/stores/userStore";
-// weather
-import { getCurrentTemperature } from "./lib/weather.js";
+import { weatherStore } from "@/stores/weatherStore";
 
+const temperature = computed(() => weatherStore.temperature);
+const shortForecast = computed(() => weatherStore.shortForecast);
 
 const username = computed(() => userStore.username || "Guest"); //this are reactive variables, we can inject anything here but obvi must write the logic 4 that
-
-
-// weather 
-const weather = ref(null);
-
-onMounted(async () => {
-  weather.value = await getCurrentTemperature("LOT", 77, 70);
-});
 
 
 </script>
@@ -26,7 +19,7 @@ from my understanding, each component in vue would be a screen, this is the clos
   <div class="header-bar">
     <button class="button">{{ username }}</button>
     <h1>Welcome to StyleSync</h1>
-    <button class="button">{{ weather.temperature }}</button>
+    <button class="button">{{ temperature }}</button>
   </div>
   <div class="all-groups">
     <div class="one-group">
