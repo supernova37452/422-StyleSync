@@ -5,7 +5,6 @@ import { userStore } from "@/stores/userStore";
 import { weatherStore } from "@/stores/weatherStore";
 
 const temperature = computed(() => weatherStore.temperature);
-const shortForecast = computed(() => weatherStore.shortForecast);
 
 const username = computed(() => userStore.username || "Guest"); //this are reactive variables, we can inject anything here but obvi must write the logic 4 that
 

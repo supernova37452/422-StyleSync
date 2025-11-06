@@ -3,10 +3,14 @@ import { ref } from "vue";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { userStore } from "@/stores/userStore";
+import { weatherStore } from "@/stores/weatherStore";
+
+
+const temperature = computed(() => weatherStore.temperature);
 
 const router = useRouter();
 const username = computed(() => userStore.username || "Guest");
-const weather = ref("62");
+const weather = temperature;
 const showInstructions = ref(false);
 const toggleInstructions = () => {
   showInstructions.value = !showInstructions.value;

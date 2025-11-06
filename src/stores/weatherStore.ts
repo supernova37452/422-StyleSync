@@ -11,7 +11,6 @@ export const weatherStore = reactive<{
 export function setWeather(temp: number, shortForecast: string | null = null) {
   weatherStore.temperature = temp;
   weatherStore.shortForecast = shortForecast;
-  // persist to localStorage
   localStorage.setItem(
     "stylesync_weather",
     JSON.stringify({ temperature: temp, shortForecast })
