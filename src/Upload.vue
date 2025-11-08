@@ -5,6 +5,7 @@ import { userStore } from "@/stores/userStore";
 import { weatherStore } from "@/stores/weatherStore";
 
 
+
 const temperature = computed(() => weatherStore.temperature);
 const icon = computed(() => weatherStore.icon);
 const shortForecast = computed(() => weatherStore.shortForecast);
@@ -21,6 +22,9 @@ const selectedImage = ref(null);     // preview of original file
 const resultUrl = ref("");           // preview of the background-removed PNG
 const loading = ref(false);
 const errorMsg = ref("");
+const bgRemoved = ref(false);
+const adding = ref(false);
+const successMsg = ref("");
 
 // open file picker
 function pickFiles() {
@@ -29,17 +33,27 @@ function pickFiles() {
 
 // when user picks a file, preview & store it
 function onFilesChange(e) {
-  const file = e.target.files?.[0];
+    const file = e.target.files?.[0];
   if (!file) return;
+
   selectedFile.value = file;
-  selectedImage.value = URL.createObjectURL(file);
+
+  //replace olf url
+  revokeUrl(selectedImage.value);
+  selectedImage.value = makeUrl(file);
+
+  revokeUrl(resultUrl.value);
   resultUrl.value = "";
+
+  errorMsg.value = "";
+  bgRemoved.value = false;
+  successMsg.value = "";
   errorMsg.value = "";
 }
 
-// ---- NEW: call our backend proxy -> PhotoRoom
+// ---- NEW: call our backend proxy -> PhotoRoom NOTE: i rewrite parts of this to make the call a bit faster
 async function removeBackground() {
-  if (!selectedFile.value) {
+    if (!selectedFile.value) {
     errorMsg.value = "Pick an image first.";
     return;
   }
@@ -47,7 +61,6 @@ async function removeBackground() {
   errorMsg.value = "";
   try {
     const form = new FormData();
-    // IMPORTANT: field name must be "image" (what the Express route expects)
     form.append("image", selectedFile.value);
 
     const res = await fetch("/api/remove-bg", { method: "POST", body: form });
@@ -55,14 +68,57 @@ async function removeBackground() {
       const text = await res.text();
       throw new Error(text || `Request failed: ${res.status}`);
     }
-
     const blob = await res.blob();
-    resultUrl.value = URL.createObjectURL(blob);
+
+    //this is to replace the original image with the new one
+    const newUrl = makeUrl(blob);
+    revokeUrl(selectedImage.value);
+    selectedImage.value = newUrl;
+
+    //clearing the box per new upload
+    revokeUrl(resultUrl.value);
+    resultUrl.value = "";
+
+    //checking type but also assinging name? i think lol this is aimas stuff
+    selectedFile.value = new File([blob],
+      (selectedFile.value.name.replace(/\.(png|jpg|jpeg|webp)$/i, '') || 'image') + '-bg.png',
+      { type: 'image/png' }
+    );
+
+bgRemoved.value = true;
   } catch (err) {
     console.error(err);
     errorMsg.value = err?.message || "Background removal failed.";
+    bgRemoved.value = false;
   } finally {
     loading.value = false;
+  }
+}
+//only add if its cut out and they selected a file and they seleected a season and color for tagging 
+const canAddToCloset = computed(() =>!!(bgRemoved.value && selectedFile.value && selectedSeason.value && selectedColor.value));
+
+async function addToCloset() {
+  if (!canAddToCloset.value) return;
+  adding.value = true;
+  errorMsg.value = "";
+  successMsg.value = "";
+
+  try {
+    const tags = getTagPayload();
+    console.log("closet payload:", {
+      file: selectedFile.value?.name,
+      ...tags,
+    });
+
+    //this is just the placeholder, im pretty sure here is where we can check the endpoint for the db by making a request and seeing if it went through successfullly
+    await new Promise(r => setTimeout(r, 700));
+    successMsg.value = "Added to closet:PPPPP";
+    router.push("/closet");
+  } catch (err) {
+    console.error(err);
+    errorMsg.value = err?.message || "naur something went wrong.";
+  } finally {
+    adding.value = false;
   }
 }
 
@@ -70,12 +126,63 @@ async function removeBackground() {
 function proceed() {
   router.push("/upload");
 }
+
+const seasonOptions = ["Year Round", "Summer", "Fall", "Winter", "Spring"];
+const colorOptions  = ["Blue", "Green", "Red", "Black", "White", "Other"];
+
+const selectedSeason = ref(null);
+const selectedColor = ref(null);
+
+const openMenu = ref(null); //so season, color, etc
+
+function toggleMenu(which) {
+  openMenu.value = openMenu.value === which ? null : which;
+}
+
+function closeMenus() { 
+    openMenu.value = null;
+}
+
+function pickSeason(s) {
+  selectedSeason.value = s;
+  closeMenus();
+}
+
+function pickColor(c) {
+  selectedColor.value = c;
+
+  closeMenus();
+}
+//NOTE: this is what i assume for what u need for the db @ shuroq 
+//so when u do const tags = getTagPayload() --> you can save these vars
+function getTagPayload() {
+const payload = {
+    season: selectedSeason.value,
+    color: selectedColor.value,
+  };
+  console.log("tag payload (this is for db):", payload);
+  return payload;
+}
+const objectUrls = new Set();
+
+function makeUrl(blobOrFile) {
+  const url = URL.createObjectURL(blobOrFile);
+  objectUrls.add(url);
+  return url;
+}
+
+function revokeUrl(url) {
+  if (url && objectUrls.has(url)) {
+    URL.revokeObjectURL(url);
+    objectUrls.delete(url);
+  }
+}
 </script>
 
 <template>
   <div class="header-bar">
     <button class="button">{{ username }}</button>
-    <h1>Upload ur shi gang</h1>
+    <h1>Add Your Items</h1>
     <button
     class="button"
     style=" display: flex; align-items: center; justify-content: space-between;gap: 12px; padding: 8px 12px;"
@@ -100,7 +207,7 @@ function proceed() {
 
   <div class="upload-container" style="margin: 24px auto 140px;">
     <div class="upload-box">
-      <!-- Original preview -->
+
       <img
         v-if="selectedImage"
         :src="selectedImage"
@@ -112,7 +219,6 @@ function proceed() {
     <!-- Result preview -->
     <div v-if="resultUrl" class="upload-box" style="margin-top:12px;">
       <img :src="resultUrl" alt="Background-removed" class="uploaded-img" />
-      <small>Background removed ✅</small>
     </div>
 
     <!-- Error message -->
@@ -132,7 +238,10 @@ function proceed() {
     <button class="footer-btn left" @click="toggleInstructions">View Instructions</button>
 
     <!-- Upload (pick file) -->
-    <button class="footer-btn main-btn" @click="pickFiles">Upload</button>
+    <button v-if="!canAddToCloset" class="footer-btn main-btn" @click="pickFiles" :disabled="loading" :aria-disabled="loading"> Upload</button>
+
+    <button v-if="canAddToCloset" class="footer-btn main-btn" @click="addToCloset" :disabled="adding" :aria-disabled="adding">
+    {{ adding ? 'Saving…' : 'Add Item to Closet' }} </button>
 
     <!-- NEW: Remove background action -->
     <button
@@ -141,22 +250,56 @@ function proceed() {
       @click="removeBackground"
       :aria-disabled="!selectedFile || loading"
     >
-      {{ loading ? 'Removing…' : 'Remove BG' }}
+      {{ loading ? 'Removing…' : 'Remove' }}
     </button>
   </div>
-
-  <!-- Instructions panel -->
   <div v-show="showInstructions" class="instructions-panel" role="dialog" aria-modal="true">
     <button class="close-x" @click="toggleInstructions" aria-label="Close">×</button>
     <div class="panel-content">
-      <strong>Before getting started, make sure you take some pictures of your favorite items! When you're ready:</strong>
+      <strong>Before getting started with uploading, take pictures of your favorite items! See the example photos for inspiration. </strong>
       <ol>
-        <li>Click <em>Upload</em> to choose a PNG/JPG from your device.</li>
-        <li>Click <strong>Remove BG</strong> to remove the background.</li>
-        <li>Tag the item by color, season, and occasion.</li>
+        <li>Click <strong>Upload </strong> to choose a PNG/JPG from your files. The more centered your item is, the better.</li>
+        <li>Click <strong>Remove</strong> to remove the background of your photo. </li>
+        <li>Tag the item via the dropdown based on the color it is and the season you would wear it for!</li>
       </ol>
+  <div class="example-grid example-grid img">
+    <img src="/icons/shoes.jpeg" alt="Example shoes" />
+    <img src="/icons/jeans.jpeg" alt="Example jeans" />
+    <img src="/icons/hoodie.jpeg" alt="Example hoodie" />
+    <img src="/icons/hat.jpeg" alt="Example hat" />
+  </div>
     </div>
   </div>
+  <aside class="tagging-rail additional-rail-items">
+  <div class="tagging">
+    <!--season stuff-->
+    <div class="tag-dropdown" :class="{ open: openMenu === 'season' }">
+        <button class="tag-trigger" @click.stop="toggleMenu('season')">
+            <span class="label">Season:</span>
+            <span class="value">{{ selectedSeason }}</span>
+            <span class="chev">▾</span>
+        </button>
+        <div v-if="openMenu === 'season'" class="menu">
+            <button v-for="s in seasonOptions" :key="s" class="menu-item" @click.stop="pickSeason(s)">
+            {{ s }} <span v-if="selectedSeason === s" class="mark">✓</span>
+            </button>
+        </div>
+    </div>
+    <!--for color-->
+    <div class="tag-dropdown" :class="{ open: openMenu === 'color' }">
+        <button class="tag-trigger" @click.stop="toggleMenu('color')">
+            <span class="label">Color:</span>
+            <span class="value">{{ selectedColor }}</span>
+            <span class="chev">▾</span>
+        </button>
+        <div v-if="openMenu === 'color'" class="menu">
+            <button v-for="c in colorOptions" :key="c" class="menu-item" @click.stop="pickColor(c)">
+            {{ c }} <span v-if="selectedColor === c" class="mark">✓</span>
+            </button>
+        </div>
+    </div>
+</div>
+</aside>
 </template>
 
 <style scoped>
