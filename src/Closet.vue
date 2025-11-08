@@ -7,6 +7,8 @@ import { uploadClosetImage } from "@/lib/storage";
 import { addClosetItem } from "@/lib/closet";
 
 const temperature = computed(() => weatherStore.temperature);
+const icon = computed(() => weatherStore.icon);
+const shortForecast = computed(() => weatherStore.shortForecast);
 
 const username = computed(() => userStore.username || "Guest"); //this are reactive variables, we can inject anything here but obvi must write the logic 4 that
 async function onPickFile(e: Event) {
@@ -31,8 +33,27 @@ from my understanding, each component in vue would be a screen, this is the clos
   <div class="header-bar">
     <button class="button">{{ username }}</button>
     <h1>Welcome to StyleSync</h1>
-    <button class="button">{{ temperature }}</button>
-  </div>
+     <button
+    class="button"
+    style=" display: flex; align-items: center; justify-content: space-between;gap: 12px; padding: 8px 12px;"
+  >
+    <div
+      style=" display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.2;
+        max-width: 100px; word-wrap: break-word;"
+    >
+      <span>{{ temperature }}°</span>
+      <small v-if="shortForecast" style="font-size: 12px;  max-width: 100px; word-wrap: break-word;">
+        {{ shortForecast }}
+      </small>
+    </div>
+    <img
+      v-if="icon"
+      :src="icon"
+      alt="Weather icon"
+      style="width: 40px; height: 40px;"
+    />
+  </button>
+</div>
   <div class="all-groups">
     <div class="one-group">
       <h3>Tops</h3>

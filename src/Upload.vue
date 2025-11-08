@@ -6,10 +6,11 @@ import { weatherStore } from "@/stores/weatherStore";
 
 
 const temperature = computed(() => weatherStore.temperature);
+const icon = computed(() => weatherStore.icon);
+const shortForecast = computed(() => weatherStore.shortForecast);
 
 const router = useRouter();
 const username = computed(() => userStore.username || "Guest");
-const weather = temperature;
 const showInstructions = ref(false);
 const toggleInstructions = () => (showInstructions.value = !showInstructions.value);
 
@@ -75,8 +76,27 @@ function proceed() {
   <div class="header-bar">
     <button class="button">{{ username }}</button>
     <h1>Upload ur shi gang</h1>
-    <button class="button">{{ weather }}</button>
-  </div>
+    <button
+    class="button"
+    style=" display: flex; align-items: center; justify-content: space-between;gap: 12px; padding: 8px 12px;"
+  >
+    <div
+      style=" display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.2;
+        max-width: 100px; word-wrap: break-word;"
+    >
+      <span>{{ temperature }}°</span>
+      <small v-if="shortForecast" style="font-size: 12px;  max-width: 100px; word-wrap: break-word;">
+        {{ shortForecast }}
+      </small>
+    </div>
+    <img
+      v-if="icon"
+      :src="icon" 
+      alt="Weather icon"
+      style="width: 40px; height: 40px;"
+    />
+  </button>
+</div>
 
   <div class="upload-container" style="margin: 24px auto 140px;">
     <div class="upload-box">
