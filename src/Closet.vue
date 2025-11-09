@@ -35,12 +35,11 @@ from my understanding, each component in vue would be a screen, this is the clos
     <h1>Welcome to StyleSync</h1>
      <button
     class="button"
-    style=" display: flex; align-items: center; justify-content: space-between;gap: 12px; padding: 8px 12px;"
-  >
+    style=" display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 8px 12px;">
     <div
       style=" display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.2;
-        max-width: 100px; word-wrap: break-word;"
-    >
+        max-width: 100px; word-wrap: break-word;">
       <span>{{ temperature }}°</span>
       <small v-if="shortForecast" style="font-size: 12px;  max-width: 100px; word-wrap: break-word;">
         {{ shortForecast }}
@@ -156,6 +155,25 @@ from my understanding, each component in vue would be a screen, this is the clos
     </div>
   </div>
   <p></p>
+  <div
+    style="
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 20px;
+    ">
+    <button class="button">
+        <RouterLink to="/outfitbuilder" style="color: inherit; text-decoration: none;">
+        Outfit Builder
+        </RouterLink>
+    </button>
+
+    <button class="button">
+        <RouterLink to="/closet" style="color: inherit; text-decoration: none;">
+        Favorite Outfits
+        </RouterLink>
+    </button>
+    </div>
 </template>
 
 <style scoped></style>
