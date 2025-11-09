@@ -1,71 +1,143 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { computed } from "vue";
+import { ref, computed, watch, onUnmounted } from "vue";
+import { RouterLink } from "vue-router";
 import { userStore } from "@/stores/userStore";
 import { weatherStore } from "@/stores/weatherStore";
-import { uploadClosetImage } from "@/lib/storage";
-import { addClosetItem } from "@/lib/closet";
+import { listClosetItems, subscribeClosetItems } from "@/lib/closet";
 
+const username = computed(() => userStore.username || "Guest");
 const temperature = computed(() => weatherStore.temperature);
 const icon = computed(() => weatherStore.icon);
 const shortForecast = computed(() => weatherStore.shortForecast);
 
-const username = computed(() => userStore.username || "Guest"); //this are reactive variables, we can inject anything here but obvi must write the logic 4 that
-async function onPickFile(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0];
-  if (!file || !userStore.uid) return;
+const items = ref<any[]>([]);
+let stop: null | (() => void) = null;
 
-  const img = await uploadClosetImage(userStore.uid, file);
-  await addClosetItem(userStore.uid, {
-    name: file.name.replace(/\.[^.]+$/, ""),
-    category: "tops",
-    imageURL: img.url, // <- store download URL in Firestore
-    storagePath: img.path,
-  });
+/** bind to a uid: fetch once + live subscribe */
+async function bindToUid(uid: string | null) {
+  // kill old sub
+  if (stop) {
+    console.log("[CLOSET] unsubscribing previous listener");
+    stop();
+    stop = null;
+  }
+  items.value = [];
+
+  console.log("[CLOSET] bindToUid →", uid);
+  if (!uid) return;
+
+  // one-time load (no orderBy so nothing gets filtered)
+  try {
+    const list = await listClosetItems(uid);
+    console.log("[CLOSET] listClosetItems size =", list.length, list);
+    items.value = list;
+  } catch (e) {
+    console.error("[CLOSET] listClosetItems error:", e);
+  }
+
+  // live updates (log every snapshot)
+  try {
+    const unsub = subscribeClosetItems(uid, (arr) => {
+      console.log("[CLOSET] onSnapshot size =", arr.length, arr);
+      items.value = arr;
+    });
+    stop = () => unsub();
+  } catch (e) {
+    console.error("[CLOSET] subscribeClosetItems error:", e);
+  }
+}
+
+// re-bind whenever uid changes (covers switching usernames)
+watch(
+  () => userStore.uid,
+  (uid) => {
+    console.log("[CLOSET] userStore.uid changed →", uid);
+    bindToUid(uid || null);
+  },
+  { immediate: true }
+);
+
+onUnmounted(() => {
+  if (stop) stop();
+});
+
+// group by type
+const byType = computed(() => {
+  const g: Record<string, any[]> = {
+    tops: [],
+    bottoms: [],
+    shoes: [],
+    jackets: [],
+    accessories: [],
+  };
+  for (const it of items.value) {
+    const t = (it as any).type || "tops";
+    if (g[t]) g[t].push(it);
+  }
+  return g;
+});
+
+// exactly 7 slots per category → real items first, then placeholders
+function slotsFor(
+  type: "tops" | "bottoms" | "shoes" | "jackets" | "accessories"
+) {
+  const arr = byType.value[type] ?? [];
+  const real = arr.slice(0, 7);
+  const phCount = Math.max(0, 7 - real.length);
+  return [...real, ...Array(phCount).fill(null)];
 }
 </script>
-<!-- okay so here is our app.vue: this is the top parent component! 
-from my understanding, each component in vue would be a screen, this is the closet view for now
--->
 
 <template>
-  <!-- this is where the router will inject the components based on the route -->
   <div class="header-bar">
     <button class="button">{{ username }}</button>
     <h1>Welcome to StyleSync</h1>
-     <button
-    class="button"
-    style=" display: flex; align-items: center; justify-content: space-between;gap: 12px; padding: 8px 12px;"
-  >
-    <div
-      style=" display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.2;
-        max-width: 100px; word-wrap: break-word;"
+    <button
+      class="button"
+      style="display: flex; align-items: center; gap: 12px; padding: 8px 12px"
     >
-      <span>{{ temperature }}°</span>
-      <small v-if="shortForecast" style="font-size: 12px;  max-width: 100px; word-wrap: break-word;">
-        {{ shortForecast }}
-      </small>
-    </div>
-    <img
-      v-if="icon"
-      :src="icon"
-      alt="Weather icon"
-      style="width: 40px; height: 40px;"
-    />
-  </button>
-</div>
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          line-height: 1.2;
+          max-width: 100px;
+        "
+      >
+        <span>{{ temperature }}°</span>
+        <small v-if="shortForecast" style="font-size: 12px; max-width: 100px">{{
+          shortForecast
+        }}</small>
+      </div>
+      <img
+        v-if="icon"
+        :src="icon"
+        alt="Weather icon"
+        style="width: 40px; height: 40px"
+      />
+    </button>
+  </div>
+
   <div class="all-groups">
+    <!-- TOPS -->
     <div class="one-group">
       <h3>Tops</h3>
       <div class="box-grid">
-        <!-- <div v-for="n in 8" :key="`tops-${n}`" class="box"></div> -->
         <div
-          v-for="n in 8"
-          :key="`tops-${n}`"
-          :class="['box', n === 8 ? 'plus-in-box' : '']"
+          v-for="(slot, i) in slotsFor('tops')"
+          :key="'tops-' + i"
+          class="box"
         >
+          <img
+            v-if="slot"
+            :src="slot.imageURL"
+            alt=""
+            style="max-width: 100%; max-height: 100%; object-fit: contain"
+          />
+        </div>
+        <div class="box plus-in-box">
           <RouterLink
-            v-if="n === 8"
             to="/upload?type=tops"
             class="plus-box"
             aria-label="Add a top"
@@ -75,87 +147,112 @@ from my understanding, each component in vue would be a screen, this is the clos
       </div>
     </div>
 
+    <!-- BOTTOMS -->
     <div class="one-group">
       <h3>Bottoms</h3>
       <div class="box-grid">
-        <!-- <div v-for="n in 8" :key="`bottoms-${n}`" class="box"></div> -->
         <div
-          v-for="n in 8"
-          :key="`tops-${n}`"
-          :class="['box', n === 8 ? 'plus-in-box' : '']"
+          v-for="(slot, i) in slotsFor('bottoms')"
+          :key="'bottoms-' + i"
+          class="box"
         >
+          <img
+            v-if="slot"
+            :src="slot.imageURL"
+            alt=""
+            style="max-width: 100%; max-height: 100%; object-fit: contain"
+          />
+        </div>
+        <div class="box plus-in-box">
           <RouterLink
-            v-if="n === 8"
             to="/upload?type=bottoms"
             class="plus-box"
-            aria-label="Add a top"
+            aria-label="Add bottoms"
             >+</RouterLink
           >
         </div>
       </div>
     </div>
 
+    <!-- SHOES -->
     <div class="one-group">
       <h3>Shoes</h3>
       <div class="box-grid">
-        <!-- <div v-for="n in 8" :key="`shoes-${n}`" class="box"></div> -->
         <div
-          v-for="n in 8"
-          :key="`tops-${n}`"
-          :class="['box', n === 8 ? 'plus-in-box' : '']"
+          v-for="(slot, i) in slotsFor('shoes')"
+          :key="'shoes-' + i"
+          class="box"
         >
+          <img
+            v-if="slot"
+            :src="slot.imageURL"
+            alt=""
+            style="max-width: 100%; max-height: 100%; object-fit: contain"
+          />
+        </div>
+        <div class="box plus-in-box">
           <RouterLink
-            v-if="n === 8"
             to="/upload?type=shoes"
             class="plus-box"
-            aria-label="Add a top"
+            aria-label="Add shoes"
             >+</RouterLink
           >
         </div>
       </div>
     </div>
 
+    <!-- JACKETS -->
     <div class="one-group">
       <h3>Jackets</h3>
       <div class="box-grid">
-        <!-- <div v-for="n in 8" :key="`jackets-${n}`" class="box"></div> -->
         <div
-          v-for="n in 8"
-          :key="`tops-${n}`"
-          :class="['box', n === 8 ? 'plus-in-box' : '']"
+          v-for="(slot, i) in slotsFor('jackets')"
+          :key="'jackets-' + i"
+          class="box"
         >
+          <img
+            v-if="slot"
+            :src="slot.imageURL"
+            alt=""
+            style="max-width: 100%; max-height: 100%; object-fit: contain"
+          />
+        </div>
+        <div class="box plus-in-box">
           <RouterLink
-            v-if="n === 8"
             to="/upload?type=jackets"
             class="plus-box"
-            aria-label="Add a top"
+            aria-label="Add a jacket"
             >+</RouterLink
           >
         </div>
       </div>
     </div>
 
+    <!-- ACCESSORIES -->
     <div class="one-group">
       <h3>Accessories</h3>
       <div class="box-grid">
-        <!-- <div v-for="n in 8" :key="`acc-${n}`" class="box"></div> -->
         <div
-          v-for="n in 8"
-          :key="`tops-${n}`"
-          :class="['box', n === 8 ? 'plus-in-box' : '']"
+          v-for="(slot, i) in slotsFor('accessories')"
+          :key="'accessories-' + i"
+          class="box"
         >
+          <img
+            v-if="slot"
+            :src="slot.imageURL"
+            alt=""
+            style="max-width: 100%; max-height: 100%; object-fit: contain"
+          />
+        </div>
+        <div class="box plus-in-box">
           <RouterLink
-            v-if="n === 8"
             to="/upload?type=accessories"
             class="plus-box"
-            aria-label="Add a top"
+            aria-label="Add an accessory"
             >+</RouterLink
           >
         </div>
       </div>
     </div>
   </div>
-  <p></p>
 </template>
-
-<style scoped></style>

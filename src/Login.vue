@@ -1,17 +1,21 @@
 <script setup lang="ts">
-
-
-import { ref, onMounted } from "vue"; 
+import { ref, onMounted } from "vue";
 import { auth } from "./lib/firebase";
-import { usernameToUid, claimUsernameOrThrow } from "./lib/username";
+import { usernameToUid, claimUsernameOrThrow, norm } from "./lib/username";
 import { ensureUserArea } from "./lib/closet";
 import { setUser } from "@/stores/userStore";
 import { useRouter } from "vue-router";
 import { setWeather } from "@/stores/weatherStore";
 import { getCurrentTemperature } from "@/lib/weather.js";
+import { signOut, signInAnonymously } from "firebase/auth";
+import { clearUser } from "@/stores/userStore";
 
 onMounted(async () => {
-  const { temperature, shortForecast } = await getCurrentTemperature("LOT", 77, 70);
+  const { temperature, shortForecast } = await getCurrentTemperature(
+    "LOT",
+    77,
+    70
+  );
   setWeather(temperature, shortForecast);
 });
 
@@ -19,44 +23,43 @@ const router = useRouter();
 const username = ref("");
 const error = ref("");
 
-
-
-function norm(u) {
-  return u.trim().toLowerCase().replace(/\s+/g, "_");
-}
-
-
 async function proceed() {
   error.value = "";
+
   const uname = norm(username.value);
   if (!uname) return;
 
-  const me = auth.currentUser; // this is the anonymous user
+  // make sure we have an anon session; main.js usually does this already
+  const me = auth.currentUser;
   if (!me) {
     error.value = "Auth not ready. Try again.";
     return;
   }
 
-  const existingUid = await usernameToUid(uname);
-
   try {
-    if (!existingUid) {
-      // new username → bind it to THIS anon uid and create /users/{uid}
-      await claimUsernameOrThrow(me.uid, uname);
-      await ensureUserArea(me.uid);
-      setUser(me.uid, uname);
-      router.push("/closet");
-    } else if (existingUid === me.uid) {
-      // you already own this username on this device
-      await ensureUserArea(me.uid);
-      setUser(me.uid, uname);
-      router.push("/closet");
-    } else {
-      // taken by a different uid (likely another device)
-      error.value = "That username is already taken on another device.";
+    const existingUid = await usernameToUid(uname);
+
+    if (existingUid) {
+      // username already bound
+      if (existingUid === me.uid) {
+        // same device/session → allowed
+        setUser(me.uid, uname);
+        await ensureUserArea(me.uid);
+        router.push("/closet");
+      } else {
+        // different device/session → block (do NOT signOut)
+        error.value = "That username is already taken on another device.";
+      }
+      return;
     }
-  } catch (e) {
-    error.value = e.message ?? String(e);
+
+    // new username → bind to *current* anon user (do NOT signOut)
+    await claimUsernameOrThrow(me.uid, uname);
+    await ensureUserArea(me.uid);
+    setUser(me.uid, uname);
+    router.push("/closet");
+  } catch (e: any) {
+    error.value = e?.message ?? String(e);
   }
 }
 </script>

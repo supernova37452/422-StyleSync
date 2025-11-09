@@ -4,11 +4,11 @@ export const userStore = reactive<{
   uid: string | null;
   username: string | null;
 }>({
-  uid: null,
-  username: null,
+  uid: "",
+  username: "",
 });
 
-export function setUser(uid: string | null, username: string | null) {
+export function setUser(uid: string, username: string) {
   userStore.uid = uid;
   userStore.username = username;
   if (uid && username) {
@@ -27,4 +27,10 @@ export function hydrateUser() {
   } catch {
     /* ignore */
   }
+}
+
+export function clearUser() {
+  userStore.uid = "";
+  userStore.username = "";
+  localStorage.removeItem("stylesync_user");
 }
