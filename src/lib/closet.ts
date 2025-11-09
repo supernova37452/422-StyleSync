@@ -2,7 +2,6 @@
 import { db } from "./firebase";
 import {
   doc,
-  getDoc,
   setDoc,
   serverTimestamp,
   collection,
@@ -19,8 +18,13 @@ export type ClosetType =
   | "jackets"
   | "accessories";
 
-export async function addClosetItem(
-  uid: string,
+export async function ensureUserAreaByName(name: string) {
+  const ref = doc(db, "usernames", name);
+  await setDoc(ref, { createdAt: serverTimestamp() }, { merge: true });
+}
+
+export async function addClosetItemByName(
+  name: string,
   data: {
     name: string;
     type: ClosetType;
@@ -31,32 +35,27 @@ export async function addClosetItem(
   }
 ) {
   const id = crypto.randomUUID();
-  await setDoc(doc(db, "users", uid, "closet", id), {
+  await setDoc(doc(db, "usernames", name, "closet", id), {
     ...data,
+    username: name, // used by rule check
     createdAt: serverTimestamp(),
   });
   return id;
 }
 
-export async function ensureUserArea(uid: string) {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    await setDoc(ref, { createdAt: serverTimestamp() }, { merge: true });
-  }
-}
-
-export async function listClosetItems(uid: string) {
-  const ref = collection(db, "users", uid, "closet");
+export async function listClosetItemsByName(name: string) {
+  const ref = collection(db, "usernames", name, "closet");
   const qs = await getDocs(ref);
   return qs.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-// live updates ordered by createdAt
-export function subscribeClosetItems(uid: string, cb: (items: any[]) => void) {
-  const ref = collection(db, "users", uid, "closet");
+export function subscribeClosetItemsByName(
+  name: string,
+  cb: (items: any[]) => void
+) {
+  const ref = collection(db, "usernames", name, "closet");
   const q = query(ref, orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-  });
+  return onSnapshot(q, (snap) =>
+    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
 }

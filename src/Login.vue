@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import { auth } from "./lib/firebase";
 import { usernameToUid, claimUsernameOrThrow, norm } from "./lib/username";
-import { ensureUserArea } from "./lib/closet";
+import { ensureUserAreaByName } from "./lib/closet";
 import { setUser } from "@/stores/userStore";
 import { useRouter } from "vue-router";
 import { setWeather } from "@/stores/weatherStore";
@@ -25,42 +25,11 @@ const error = ref("");
 
 async function proceed() {
   error.value = "";
-
-  const uname = norm(username.value);
-  if (!uname) return;
-
-  // make sure we have an anon session; main.js usually does this already
-  const me = auth.currentUser;
-  if (!me) {
-    error.value = "Auth not ready. Try again.";
-    return;
-  }
-
-  try {
-    const existingUid = await usernameToUid(uname);
-
-    if (existingUid) {
-      // username already bound
-      if (existingUid === me.uid) {
-        // same device/session → allowed
-        setUser(me.uid, uname);
-        await ensureUserArea(me.uid);
-        router.push("/closet");
-      } else {
-        // different device/session → block (do NOT signOut)
-        error.value = "That username is already taken on another device.";
-      }
-      return;
-    }
-
-    // new username → bind to *current* anon user (do NOT signOut)
-    await claimUsernameOrThrow(me.uid, uname);
-    await ensureUserArea(me.uid);
-    setUser(me.uid, uname);
-    router.push("/closet");
-  } catch (e: any) {
-    error.value = e?.message ?? String(e);
-  }
+  const key = norm(username.value);
+  if (!key) return;
+  await ensureUserAreaByName(key); // creates /usernames/{key} if missing
+  setUser("", key); // uid is irrelevant now
+  router.push("/closet");
 }
 </script>
 

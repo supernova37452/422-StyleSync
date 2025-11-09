@@ -3,57 +3,40 @@ import { ref, computed, watch, onUnmounted } from "vue";
 import { RouterLink } from "vue-router";
 import { userStore } from "@/stores/userStore";
 import { weatherStore } from "@/stores/weatherStore";
-import { listClosetItems, subscribeClosetItems } from "@/lib/closet";
+import {
+  subscribeClosetItemsByName,
+  listClosetItemsByName,
+} from "@/lib/closet";
+import { norm } from "@/lib/username";
 
 const username = computed(() => userStore.username || "Guest");
 const temperature = computed(() => weatherStore.temperature);
 const icon = computed(() => weatherStore.icon);
 const shortForecast = computed(() => weatherStore.shortForecast);
 
+/** bind to a name: fetch once + live subscribe */
 const items = ref<any[]>([]);
 let stop: null | (() => void) = null;
 
-/** bind to a uid: fetch once + live subscribe */
-async function bindToUid(uid: string | null) {
-  // kill old sub
+async function bindToName(name: string | null) {
   if (stop) {
-    console.log("[CLOSET] unsubscribing previous listener");
     stop();
     stop = null;
   }
   items.value = [];
-
-  console.log("[CLOSET] bindToUid →", uid);
-  if (!uid) return;
-
-  // one-time load (no orderBy so nothing gets filtered)
+  if (!name) return;
+  const key = norm(name);
   try {
-    const list = await listClosetItems(uid);
-    console.log("[CLOSET] listClosetItems size =", list.length, list);
-    items.value = list;
-  } catch (e) {
-    console.error("[CLOSET] listClosetItems error:", e);
-  }
-
-  // live updates (log every snapshot)
+    items.value = await listClosetItemsByName(key);
+  } catch {}
   try {
-    const unsub = subscribeClosetItems(uid, (arr) => {
-      console.log("[CLOSET] onSnapshot size =", arr.length, arr);
-      items.value = arr;
-    });
-    stop = () => unsub();
-  } catch (e) {
-    console.error("[CLOSET] subscribeClosetItems error:", e);
-  }
+    stop = subscribeClosetItemsByName(key, (arr) => (items.value = arr));
+  } catch {}
 }
 
-// re-bind whenever uid changes (covers switching usernames)
 watch(
-  () => userStore.uid,
-  (uid) => {
-    console.log("[CLOSET] userStore.uid changed →", uid);
-    bindToUid(uid || null);
-  },
+  () => userStore.username,
+  (u) => bindToName(u || null),
   { immediate: true }
 );
 

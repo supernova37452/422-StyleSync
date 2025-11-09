@@ -1,11 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { userStore } from "@/stores/userStore";
+import { norm } from "@/lib/username";
 import { weatherStore } from "@/stores/weatherStore";
-import { uploadClosetImage } from "@/lib/storage"; // <-- NEW
-import { addClosetItem } from "@/lib/closet";
-import { auth } from "@/lib/firebase";
+import { uploadClosetImageByName } from "@/lib/storage"; // <-- NEW
+import { addClosetItemByName } from "@/lib/closet";
 
 const temperature = computed(() => weatherStore.temperature);
 const icon = computed(() => weatherStore.icon);
@@ -122,38 +122,32 @@ const canAddToCloset = computed(
 );
 
 async function addToCloset() {
-  const authUid = auth.currentUser?.uid || null;
-  console.log("[DEBUG] auth.uid =", authUid, " store.uid =", userStore.uid);
-  if (authUid !== userStore.uid) {
-    errorMsg.value = "You’re viewing another user’s closet (read-only).";
+  if (!canAddToCloset.value || !userStore.username || !selectedFile.value)
     return;
-  }
-  if (!canAddToCloset.value || !userStore.uid || !selectedFile.value) return;
   adding.value = true;
   errorMsg.value = "";
-
   try {
-    // 1) upload to Firebase Storage
-    const { url, path } = await uploadClosetImage(
-      userStore.uid,
+    const nameKey = norm(userStore.username);
+
+    // upload to /usernames/{name}/closet/...
+    const { url, path } = await uploadClosetImageByName(
+      nameKey,
       selectedFile.value
     );
-    console.log("[DEBUG] storage path =", path);
-    // 2) write Firestore doc under users/{uid}/closet/{id}
-    await addClosetItem(userStore.uid, {
+
+    // write Firestore under /usernames/{name}/closet
+    await addClosetItemByName(nameKey, {
       name: selectedFile.value.name.replace(/\.[^.]+$/, ""),
-      type: String(itemType.value),
+      type: itemType.value,
       imageURL: url,
       storagePath: path,
       color: selectedColor.value || undefined,
       season: selectedSeason.value || undefined,
     });
 
-    // 3) back to closet
     router.push("/closet");
-  } catch (err) {
-    console.error(err);
-    errorMsg.value = err?.message || "Save failed.";
+  } catch (e) {
+    errorMsg.value = e?.message || "Save failed.";
   } finally {
     adding.value = false;
   }
