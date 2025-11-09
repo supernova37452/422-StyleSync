@@ -1,253 +1,195 @@
-  .header-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    flex: 1; 
-    text-align: center;
-    margin: 0;
-    font-weight: 500; 
-  }
-  
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  font-weight: 500;
+}
 
-  button {
-    background-color: #8581ce; /* 6c67c6*/
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.2s ease;
-  }
-  
-  .all-groups {
-    display: flex;
-    justify-content: center;
-    gap: 50px;/* spacing the categorries */
-    padding: 20px;
-    flex-wrap: wrap; 
-  }
+button {
+  background-color: #6c67c6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+}
 
-  .one-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .box-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 boxes/row */
-    gap: 20px;
-  }
-  
-  .box {
-    background-color: #eeeeee;
-    aspect-ratio: 1 / 1; /*perfect squares YASSS*/
-    width: 100px;   /*this is the overall size of each box*/
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-  }
-
-   /* shoved all the outfit stuff in here idk */
-   .fit-groups {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    
-    padding: 10px;
-    margin-right: -80px;
-    flex-wrap: nowrap; 
-  }
-  .fit-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* idk what this is really*/
-    gap: 0px;
-  }
-  .fit-box {
-    background-color: #eeeeee;
-    aspect-ratio: 1 / 1; 
-    width: 170px;   
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 2px;
-    margin: 3px 0;
-  }
-  .one-fit {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0px;
-    margin: 0px -70px;
-  }
-   .star-container {
+.all-groups {
   display: flex;
   justify-content: center;
-  align-items: center;
-  margin: 10 10px; /* space between outfit boxes and dropdown */
-  }
-
-  .star-icon {
-  width: 150px;
-  height: 150px;
-  cursor: pointer;
-  transition: transform 0.2s ease, filter 0.2s ease;
-  }
-
-  .star-icon:hover {
-  transform: scale(1.1);
-  filter: brightness(1.1);
-  }
-  .fit-rail-items{
-  position: static;
-  right: 0px;
-  left: 900px;
-  top:200px;
-  width: 330px;
-  z-index: 1;
-  isolation: isolate;
+  gap: 60px; /* spacing the categorries */
+  padding: 40px;
+  flex-wrap: wrap;
 }
-  
 
-  .plus-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background-color: #8581ce;
-    color: #fff;
-    font-size: 6rem;
-    font-weight: 800;
-    border-radius: 12px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: transform 0.15s ease, opacity 0.15s ease;
-    line-height: 1;
-  }
-  
-  /*i havent used these uet but we may */ 
-  .plus-box:hover {
-    transform: translateY(-2px);
-    opacity: 0.9;
-  }
-  
-  .plus-box:active {
-    transform: translateY(0);
-    opacity: 0.8;
-  }  
+.one-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  .bottom-buttons {
-    position: fixed;
-    bottom: 50px;
-    left: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 10px;
-  }
-  
-  .footer-btn {
-    background-color: #8581ce;
-    color: #fff;
-    border: none;
-    border-radius: 14px;
-    padding: 16px 36px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    font-family: "Playfair Display", serif;
-    cursor: pointer;
-    transition: transform 0.15s ease, opacity 0.15s ease;
-    position: absolute;
-  }
-  
-  .footer-btn:hover {
-    transform: scale(1.05);
-    opacity: 0.9;
-  }
-  
-  .footer-btn:active {
-    transform: scale(0.97);
-    opacity: 0.85;
-  }
-  
-  .main-btn {
-    right: 46%;
-    transition: transform 0.15s ease, opacity 0.15s ease;
-    font-size: 1.3rem;
-    padding: 20px 50px;
-    /* transition: transform 0.15s ease, opacity 0.15s ease; */
-    line-height: 1;
-  }
-  
-  .footer-btn.left {
-    left: 25px;
-  }
-  
-  .footer-btn.right {
-    right: 45px;
-  }
-  
-  .instructions-panel {
-    position: fixed;
-    bottom: 110px;            
-    left: 30px;                
-    width: 300px; 
-    max-width: 90vw;
-    min-height: 540px;
-    max-height: 480px;
-    background-color: #8581ce;
-    color: #fff;
-    border-radius: 28px;
-    padding: 28px 32px;
-    box-shadow: 0 10px 24px rgba(0,0,0,.2);
-    font-family: "Playfair Display", serif;
-    z-index: 50;
-  }
-    /*this is silly lol, but its just to "pad" the text so its not overlapping w the x button*/
-  .panel-content {
-    margin-top: 20px; 
-  }
-  
-      /* ALL of this just to make the stupid box in the center im ._.*/
-  .close-x { 
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.18);
-    color: #fff;
-    font-size: 20px;
-    font-weight: 700;
-    cursor: pointer;
-    line-height: 1;
-    transition: background 0.15s ease;
-  }
-  .close-x:hover { background: rgba(255,255,255,.28); }
+.box-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 boxes/row */
+  gap: 20px;
+}
 
-  .hidden-file { display: none; }
+.box {
+  background-color: #eeeeee;
+  aspect-ratio: 1 / 1; /*perfect squares YASSS*/
+  width: 100px; /*this is the overall size of each box*/
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.plus-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: #6c67c6;
+  color: #fff;
+  font-size: 6rem;
+  font-weight: 800;
+  border-radius: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  line-height: 1;
+}
+
+/*i havent used these uet but we may */
+.plus-box:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.plus-box:active {
+  transform: translateY(0);
+  opacity: 0.8;
+}
+
+.bottom-buttons {
+  position: fixed;
+  bottom: 50px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.footer-btn {
+  background-color: #6c67c6;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 16px 36px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: "Playfair Display", serif;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  position: absolute;
+}
+
+.footer-btn:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+.footer-btn:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+.main-btn {
+  right: 46%;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  font-size: 1.3rem;
+  padding: 20px 50px;
+  /* transition: transform 0.15s ease, opacity 0.15s ease; */
+  line-height: 1;
+}
+
+.footer-btn.left {
+  left: 25px;
+}
+
+.footer-btn.right {
+  right: 45px;
+}
+
+.instructions-panel {
+  position: fixed;
+  bottom: 110px;
+  left: 30px;
+  width: 300px;
+  max-width: 90vw;
+  min-height: 540px;
+  max-height: 480px;
+  background-color: #6c67c6;
+  color: #fff;
+  border-radius: 28px;
+  padding: 28px 32px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  font-family: "Playfair Display", serif;
+  z-index: 50;
+}
+/*this is silly lol, but its just to "pad" the text so its not overlapping w the x button*/
+.panel-content {
+  margin-top: 20px;
+}
+
+/* ALL of this just to make the stupid box in the center im ._.*/
+.close-x {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s ease;
+}
+.close-x:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.hidden-file {
+  display: none;
+}
 
 .dropzone {
   margin: 24px auto 120px;
   width: min(900px, 92vw);
   min-height: 140px;
-  border: 2px dashed rgba(108,103,198,.5);
+  border: 2px dashed rgba(108, 103, 198, 0.5);
   border-radius: 16px;
   display: grid;
   place-items: center;
   color: #6c67c6;
   font-family: "Playfair Display", serif;
-  background: rgba(108,103,198,.06);
+  background: rgba(108, 103, 198, 0.06);
 }
 
 .preview-row {
@@ -315,7 +257,7 @@
   display: none;
 }
 
-.upload-container{
+.upload-container {
   width: 500px;
   margin: 24px auto 140px;
   display: flex;
@@ -323,100 +265,103 @@
   align-items: center;
   gap: 20px;
 }
-.upload-box{
-  width: 500px; height: 500px;
-  background: #f1f1f1; border-radius: 10px;
-  display:flex; align-items:center; justify-content:center;
-  overflow:hidden;
+.upload-box {
+  width: 500px;
+  height: 500px;
+  background: #f1f1f1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
-.uploaded-img{ 
-  width:100%;
-  height:100%; 
-  object-fit:cover; 
-}
-
-
-.tagging{ 
-  display:flex; 
-  flex-direction:column; 
-  gap:22px; 
+.uploaded-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.additional-rail-items{
+.tagging {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.additional-rail-items {
   position: fixed;
   right: 32px;
-  top:200px;
+  top: 200px;
   width: 360px;
   z-index: 1;
   isolation: isolate;
 }
 .tag-dropdown.open {
-   z-index: 1000; 
-  }
+  z-index: 1000;
+}
 
-  .tag-dropdown{ width:100%; 
-    position:relative;
-     z-index: 1;
-  }
+.tag-dropdown {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
 
-  .tag-trigger{
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: left;
-    gap: 8px;
-    padding: 14px 20px;
-  }
+.tag-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  gap: 8px;
+  padding: 14px 20px;
+}
 
-  .tag-trigger .value{ 
-    padding-left:6px;
-     opacity:.95; 
-    }
+.tag-trigger .value {
+  padding-left: 6px;
+  opacity: 0.95;
+}
 
-    .tag-trigger .chev{ 
-      font-size: 0.9em;
-      margin-left: 8px;
-      /* width:1.1em; 
+.tag-trigger .chev {
+  font-size: 0.9em;
+  margin-left: 8px;
+  /* width:1.1em; 
       display:inline-flex; 
       justify-content: center;  */
-    }
+}
 
-    .menu{
-      position:absolute; 
-      inset-inline:0; 
-      top:calc(100% + 6px);
-      background:#9a96e0; 
-      border-radius:14px; 
-      padding:6px;
-      box-shadow:0 8px 28px rgba(0,0,0,.18);
-      z-index: 1001;
-    }
+.menu {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 6px);
+  background: #9a96e0;
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  z-index: 1001;
+}
 
-    .menu-item{
-      width:100%; 
-      border:0; 
-      background:transparent;
-      padding:10px 12px; 
-      border-radius:12px;
-      display:flex; 
-      justify-content:space-between; 
-      align-items:center;
-    }
-    .example-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-    }
-    
-    .example-grid img {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background: #f4f4f4;
-      transform: scale(0.9); /* shrink each image, t0o big */
-      transition: transform 0.2s ease;
-    }
-    
+.menu-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 10px 12px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.example-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.example-grid img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #f4f4f4;
+  transform: scale(0.9); /* shrink each image, t0o big */
+  transition: transform 0.2s ease;
+}
