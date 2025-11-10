@@ -238,4 +238,22 @@ function slotsFor(
       </div>
     </div>
   </div>
+  <p></p>
+  <div
+    style="display: flex; justify-content: center; gap: 30px; margin-top: 20px"
+  >
+    <button class="button">
+      <RouterLink
+        to="/outfitbuilder"
+        style="color: inherit; text-decoration: none"
+      >
+        Outfit Builder
+      </RouterLink>
+    </button>
+    <button class="button">
+      <RouterLink to="/closet" style="color: inherit; text-decoration: none">
+        Favorite Outfits
+      </RouterLink>
+    </button>
+  </div>
 </template>
