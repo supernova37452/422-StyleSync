@@ -6,7 +6,7 @@ import fetch from 'node-fetch'
 import FormData from 'form-data'
 import dotenv from 'dotenv'
 
-dotenv.config() // local dev; on Render env vars are injected too
+dotenv.config()
 
 // ensure tmp for uploads
 fs.mkdirSync(path.join(process.cwd(), 'tmp'), { recursive: true })
@@ -14,6 +14,7 @@ fs.mkdirSync(path.join(process.cwd(), 'tmp'), { recursive: true })
 const app = express()
 const upload = multer({ dest: 'tmp/' })
 // const upload = multer({ dest: '/tmp' })
+
 
 // ---- API: background removal ----
 app.post('/api/remove-bg', upload.single('image'), async (req, res) => {
@@ -48,14 +49,13 @@ app.post('/api/remove-bg', upload.single('image'), async (req, res) => {
   }
 })
 
-// ---- serve built Vite app from /dist ----
+// built Vite app from /dist
 const distDir = path.join(process.cwd(), 'dist')
 app.use(express.static(distDir))
 
-// client-side routing fallback (must be after API + static)
+// client-side routing fallback 
 app.get(/^\/(?!api\/).*/, (_req, res) => {
   res.sendFile(path.join(distDir, 'index.html'));
 });
-// ---- boot ----
-const port = process.env.PORT || 3001 // Render sets PORT; don't override in env
+const port = process.env.PORT || 3001 //no set port for the deployment 
 app.listen(port, () => console.log(`server + SPA listening on :${port}`))
