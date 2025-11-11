@@ -12,8 +12,8 @@ dotenv.config() // local dev; on Render env vars are injected too
 fs.mkdirSync(path.join(process.cwd(), 'tmp'), { recursive: true })
 
 const app = express()
-// const upload = multer({ dest: 'tmp/' })
-const upload = multer({ dest: '/tmp' })
+const upload = multer({ dest: 'tmp/' })
+// const upload = multer({ dest: '/tmp' })
 
 // ---- API: background removal ----
 app.post('/api/remove-bg', upload.single('image'), async (req, res) => {
