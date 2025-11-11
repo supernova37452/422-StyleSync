@@ -11,6 +11,7 @@
     "dev:vite": "vite",
     "dev:server": "nodemon server/photoroom.js",
     "build": "vite build",
+    "start": "node server/photoroom.js",
     "preview": "vite preview"
   },
   "dependencies": {
