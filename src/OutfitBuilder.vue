@@ -151,7 +151,7 @@ function pickCategory(s) {
     </button>
 
     <button class="button">
-      <RouterLink to="/closet" style="color: inherit; text-decoration: none">
+      <RouterLink to="/favfits" style="color: inherit; text-decoration: none">
         Favorite Outfits
       </RouterLink>
     </button>
