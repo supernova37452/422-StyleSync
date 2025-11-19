@@ -9,6 +9,7 @@ import {
   onSnapshot,
   query,
   orderBy,
+  deleteDoc,
 } from "firebase/firestore";
 
 export type ClosetType =
@@ -58,4 +59,42 @@ export function subscribeClosetItemsByName(
   return onSnapshot(q, (snap) =>
     cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
   );
+}
+
+// favoriting outfit helpers
+
+export type FavoriteFitPayload = {
+  topURL?: string | null;
+  bottomURL?: string | null;
+  shoesURL?: string | null;
+  jacketURL?: string | null;
+  accessoryURL?: string | null;
+  category: string | null;
+  key: string; // unique signature for this combo
+};
+
+// create a new fav fit doc under usernames/{name}/favFits
+export async function addFavoriteFitByName(
+  name: string,
+  data: FavoriteFitPayload
+) {
+  const id = crypto.randomUUID();
+  await setDoc(doc(db, "usernames", name, "favFits", id), {
+    ...data,
+    username: name,
+    createdAt: serverTimestamp(),
+  });
+  return id;
+}
+
+// list all fav fits for a user
+export async function listFavoriteFitsByName(name: string) {
+  const ref = collection(db, "usernames", name, "favFits");
+  const qs = await getDocs(ref);
+  return qs.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+// delete a single fav fit (for un-starring)
+export async function deleteFavoriteFitById(name: string, fitId: string) {
+  await deleteDoc(doc(db, "usernames", name, "favFits", fitId));
 }

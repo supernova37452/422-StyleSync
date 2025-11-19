@@ -2,7 +2,14 @@
 import { ref, computed, watch, onUnmounted } from "vue";
 import { userStore } from "@/stores/userStore";
 import { weatherStore } from "@/stores/weatherStore";
-import { subscribeClosetItemsByName, listClosetItemsByName } from "@/lib/closet";
+import {
+  subscribeClosetItemsByName,
+  listClosetItemsByName,
+  listFavoriteFitsByName,
+  addFavoriteFitByName,
+  deleteFavoriteFitById,
+  type FavoriteFitPayload,
+} from "@/lib/closet";
 import { norm } from "@/lib/username";
 
 const temperature = computed(() => weatherStore.temperature);
@@ -14,6 +21,7 @@ const catOptions = ["Casual", "Formal", "School", "Work"];
 const selectedcat = ref(null);
 const openMenu = ref(null);
 const starActive = ref(false);
+const favoriteFits = ref<any[]>([]); // for saving outfit
 
 function toggleStar() {
   starActive.value = !starActive.value;
@@ -31,7 +39,6 @@ function pickCategory(s) {
   selectedcat.value = s;
   closeMenus();
 }
-
 
 /** bind to a name: fetch once + live subscribe */
 const items = ref<any[]>([]);
@@ -52,10 +59,24 @@ async function bindToName(name: string | null) {
     stop = subscribeClosetItemsByName(key, (arr) => (items.value = arr));
   } catch {}
 }
-
+// loading what the user already has previously saved
+async function loadFavoritesForName(name: string | null) {
+  favoriteFits.value = [];
+  if (!name) return;
+  const key = norm(name);
+  try {
+    favoriteFits.value = await listFavoriteFitsByName(key);
+  } catch (e) {
+    console.warn("[FAVFITS] listFavoriteFitsByName error:", e);
+  }
+}
+// small edits to the watch
 watch(
   () => userStore.username,
-  (u) => bindToName(u || null),
+  async (u) => {
+    await bindToName(u || null);
+    await loadFavoritesForName(u || null);
+  },
   { immediate: true }
 );
 
@@ -90,8 +111,7 @@ const currentIndex = ref({
 function nextItem(type: string) {
   const arr = byType.value[type];
   if (!arr || arr.length === 0) return;
-  currentIndex.value[type] =
-    (currentIndex.value[type] + 1) % arr.length;
+  currentIndex.value[type] = (currentIndex.value[type] + 1) % arr.length;
 }
 
 function prevItem(type: string) {
@@ -106,7 +126,88 @@ function currentSelected(type: string) {
   const idx = currentIndex.value[type];
   return arr && arr.length ? arr[idx] : null;
 }
+// start of favoriting outfit code (dj added this )
+function buildCurrentSnapshot() {
+  const top = currentSelected("tops");
+  const bottom = currentSelected("bottoms");
+  const shoes = currentSelected("shoes");
+  const jacket = currentSelected("jackets");
+  const accessory = currentSelected("accessories");
 
+  const category = selectedcat.value || null;
+
+  return {
+    topURL: top?.imageURL || null,
+    bottomURL: bottom?.imageURL || null,
+    shoesURL: shoes?.imageURL || null,
+    jacketURL: jacket?.imageURL || null,
+    accessoryURL: accessory?.imageURL || null,
+    category,
+  };
+}
+
+const isCurrentFavorited = computed(() => {
+  const snap = buildCurrentSnapshot();
+  const key = makeOutfitKey(snap);
+  return favoriteFits.value.some((f: any) => f.key === key);
+});
+
+async function handleStarClick() {
+  if (!userStore.username) return;
+
+  const nameKey = norm(userStore.username);
+  const snap = buildCurrentSnapshot();
+
+  // optional: require category to be chosen
+  if (!snap.category) {
+    alert("Pick a category before saving this outfit.");
+    return;
+  }
+
+  const key = makeOutfitKey(snap);
+  const existing = favoriteFits.value.find((f: any) => f.key === key);
+
+  try {
+    if (existing) {
+      // un-favorite
+      await deleteFavoriteFitById(nameKey, existing.id);
+    } else {
+      // favorite
+      const payload: FavoriteFitPayload = {
+        ...snap,
+        key,
+      };
+      await addFavoriteFitByName(nameKey, payload);
+    }
+
+    // refresh list + star state
+    favoriteFits.value = await listFavoriteFitsByName(nameKey);
+  } catch (e) {
+    console.error("[FAVFITS] handleStarClick error:", e);
+  }
+}
+
+// keep the UI star in sync with the data
+watch(
+  () => isCurrentFavorited.value,
+  (val) => {
+    starActive.value = val;
+  },
+  { immediate: true }
+);
+
+function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
+  return JSON.stringify({
+    topURL: snap.topURL,
+    bottomURL: snap.bottomURL,
+    shoesURL: snap.shoesURL,
+    jacketURL: snap.jacketURL,
+    accessoryURL: snap.accessoryURL,
+    category: snap.category,
+  });
+}
+
+// end of favoriting outfit code (dj added this )
 </script>
 <!-- outfit builder i stole chunks from other stuff so the names are off sometimes idk -->
 
@@ -157,10 +258,16 @@ function currentSelected(type: string) {
     <div class="fit-groups" style="gap: 0px">
       <!-- left top/bottom/shoes -->
       <div class="one-fit">
-
         <div class="fit-grid">
-          <div class="fit-box" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-            
+          <div
+            class="fit-box"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
             <button class="arrow-btn" @click="prevItem('tops')">◀</button>
 
             <img
@@ -173,10 +280,16 @@ function currentSelected(type: string) {
           </div>
         </div>
 
-
         <div class="fit-grid">
-          <div class="fit-box" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-            
+          <div
+            class="fit-box"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
             <button class="arrow-btn" @click="prevItem('bottoms')">◀</button>
 
             <img
@@ -189,12 +302,16 @@ function currentSelected(type: string) {
           </div>
         </div>
 
-
-
-
         <div class="fit-grid">
-          <div class="fit-box" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-            
+          <div
+            class="fit-box"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
             <button class="arrow-btn" @click="prevItem('shoes')">◀</button>
 
             <img
@@ -206,17 +323,22 @@ function currentSelected(type: string) {
             <button class="arrow-btn" @click="nextItem('shoes')">▶</button>
           </div>
         </div>
-
       </div>
-
 
       <!-- right jackets accessories -->
       <div class="one-fit">
         <h3></h3>
         <h3></h3>
         <div class="fit-grid">
-          <div class="fit-box" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-            
+          <div
+            class="fit-box"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
             <button class="arrow-btn" @click="prevItem('jackets')">◀</button>
 
             <img
@@ -229,11 +351,19 @@ function currentSelected(type: string) {
           </div>
         </div>
 
-
         <div class="fit-grid">
-          <div class="fit-box" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-            
-            <button class="arrow-btn" @click="prevItem('accessories')">◀</button>
+          <div
+            class="fit-box"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
+            <button class="arrow-btn" @click="prevItem('accessories')">
+              ◀
+            </button>
 
             <img
               v-if="currentSelected('accessories')"
@@ -241,20 +371,22 @@ function currentSelected(type: string) {
               alt="Selected accessories"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-            <button class="arrow-btn" @click="nextItem('accessories')">▶</button>
+            <button class="arrow-btn" @click="nextItem('accessories')">
+              ▶
+            </button>
           </div>
         </div>
-
-
       </div>
 
       <!-- star stuff -->
       <div class="star-container">
         <img
-          :src="starActive ? '/icons/starfilled.png' : '/icons/star.png'"
+          :src="
+            isCurrentFavorited ? '/icons/starfilled.png' : '/icons/star.png'
+          "
           alt="Favorite star"
           class="star-icon"
-          @click="toggleStar"
+          @click="handleStarClick"
         />
       </div>
 
