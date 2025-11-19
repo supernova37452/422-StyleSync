@@ -69,6 +69,7 @@ function slotsFor(
   const phCount = Math.max(0, 7 - real.length);
   return [...real, ...Array(phCount).fill(null)];
 }
+
 </script>
 
 <template>
@@ -240,7 +241,7 @@ function slotsFor(
   </div>
   <p></p>
   <div
-    style="display: flex; justify-content: center; gap: 30px; margin-top: 20px"
+    style="display: flex; justify-content: center; gap: 30px; margin-top: 0px"
   >
     <button class="button">
       <RouterLink

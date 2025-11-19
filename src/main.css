@@ -1,3 +1,7 @@
+html, body {
+  overflow-x: hidden;
+}
+
 .header-bar {
   display: flex;
   align-items: center;
@@ -10,7 +14,7 @@
 }
 
 button {
-  background-color: #6c67c6;
+  background-color: #8581ce;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -23,8 +27,8 @@ button {
 .all-groups {
   display: flex;
   justify-content: center;
-  gap: 60px; /* spacing the categorries */
-  padding: 40px;
+  gap: 50px; /* spacing the categorries */
+  padding: 20px;
   flex-wrap: wrap;
 }
 
@@ -99,6 +103,7 @@ button {
   transform: scale(1.1);
   filter: brightness(1.1);
 }
+
 .fit-rail-items {
   position: static;
   right: 0px;
@@ -107,6 +112,18 @@ button {
   width: 330px;
   z-index: 1;
   isolation: isolate;
+}
+
+.arrow-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #8581ce;
+  padding: 4px 6px;
+}
+.arrow-btn:hover {
+  opacity: 0.7;
 }
 
 .plus-box {
@@ -149,7 +166,7 @@ button {
 }
 
 .footer-btn {
-  background-color: #6c67c6;
+  background-color: #8581ce;
   color: #fff;
   border: none;
   border-radius: 14px;
@@ -197,7 +214,7 @@ button {
   max-width: 90vw;
   min-height: 540px;
   max-height: 480px;
-  background-color: #6c67c6;
+  background-color: #8581ce;
   color: #fff;
   border-radius: 28px;
   padding: 28px 32px;

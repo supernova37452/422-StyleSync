@@ -98,7 +98,7 @@ const catOptions = ["Casual", "Formal", "School", "Work"];
         display: flex;
         justify-content: center;
         gap: 30px;
-        margin-top: 20px;
+        margin-top: 10px;
       "
     >
       <button class="button">
@@ -163,7 +163,7 @@ const catOptions = ["Casual", "Formal", "School", "Work"];
 .fav-card {
   background-color: #eeeeee; /* same box gray from main.css */
   border-radius: 12px;
-  height: clamp(250px, 50vw, 550px);
+  height: clamp(250px, 50vw, 500px);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   width: 300px;
 }
