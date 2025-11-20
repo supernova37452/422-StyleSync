@@ -98,3 +98,15 @@ export async function listFavoriteFitsByName(name: string) {
 export async function deleteFavoriteFitById(name: string, fitId: string) {
   await deleteDoc(doc(db, "usernames", name, "favFits", fitId));
 }
+
+// live subscribe to all fav fits for a user
+export function subscribeFavoriteFitsByName(
+  name: string,
+  cb: (items: any[]) => void
+) {
+  const ref = collection(db, "usernames", name, "favFits");
+  const q = query(ref, orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snap) =>
+    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+}
