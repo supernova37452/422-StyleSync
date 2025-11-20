@@ -1,37 +1,87 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { computed } from "vue";
+import { ref, computed, watch, onUnmounted } from "vue";
 import { userStore } from "@/stores/userStore";
 import { weatherStore } from "@/stores/weatherStore";
+import { norm } from "@/lib/username";
+import {
+  listFavoriteFitsByName,
+  subscribeFavoriteFitsByName,
+  deleteFavoriteFitById,
+} from "@/lib/closet";
 
 const temperature = computed(() => weatherStore.temperature);
 const icon = computed(() => weatherStore.icon);
 const shortForecast = computed(() => weatherStore.shortForecast);
 const username = computed(() => userStore.username || "Guest");
 
-const catOptions = ["Casual", "Formal", "School", "Work"];
-// const selectedcat = ref(null);
-// const openMenu = ref(null);
-// const starActive = ref(false);
+const catOptions = ["All", "Casual", "Formal", "School", "Work"];
 
-// function toggleStar() {
-//   starActive.value = !starActive.value;
-// }
+const selectedCategory = ref<string>("All");
+const favoriteFits = ref<any[]>([]);
 
-// function toggleMenu(which) {
-//   openMenu.value = openMenu.value === which ? null : which;
-// }
+let stop: null | (() => void) = null;
 
-// function closeMenus() {
-//   openMenu.value = null;
-// }
+async function bindFavorites(name: string | null) {
+  if (stop) {
+    stop();
+    stop = null;
+  }
 
-// function pickCategory(s) {
-//   selectedcat.value = s;
-//   closeMenus();
-// }
+  favoriteFits.value = [];
+  if (!name) return;
+
+  const key = norm(name);
+
+  try {
+    // initial load
+    favoriteFits.value = await listFavoriteFitsByName(key);
+
+    // live updates
+    stop = subscribeFavoriteFitsByName(key, (arr) => {
+      favoriteFits.value = arr;
+    });
+  } catch (e) {
+    console.warn("[FAVFITS] bindFavorites error:", e);
+  }
+}
+
+// react to user changes
+watch(
+  () => userStore.username,
+  (u) => {
+    bindFavorites(u || null);
+  },
+  { immediate: true }
+);
+
+onUnmounted(() => {
+  if (stop) stop();
+});
+
+// filter by category
+const filteredFits = computed(() => {
+  if (selectedCategory.value === "All") return favoriteFits.value;
+  return favoriteFits.value.filter(
+    (f) => f.category === selectedCategory.value
+  );
+});
+
+function selectCategory(cat: string) {
+  selectedCategory.value = cat;
+}
+
+async function handleDeleteFit(fitId: string) {
+  if (!userStore.username) return;
+  const key = norm(userStore.username);
+
+  try {
+    await deleteFavoriteFitById(key, fitId);
+    // subscribeFavoriteFitsByName will update favoriteFits automatically
+  } catch (e) {
+    console.error("[FAVFITS] handleDeleteFit error:", e);
+  }
+}
 </script>
-<!-- outfit builder i stole chunks from other stuff so the names are off sometimes idk -->
 
 <template>
   <div>
@@ -76,23 +126,62 @@ const catOptions = ["Casual", "Formal", "School", "Work"];
         />
       </button>
     </div>
+
     <div class="fav-content">
-      <!-- left rail -->
+      <!-- left rail: categories -->
       <aside class="fav-rail">
-        <button v-for="c in catOptions" :key="c" class="cat-pill" type="button">
+        <button
+          v-for="c in catOptions"
+          :key="c"
+          class="cat-pill"
+          :class="{ active: selectedCategory === c }"
+          type="button"
+          @click="selectCategory(c)"
+        >
           {{ c }}
         </button>
       </aside>
 
-      <!-- three large boxes -->
+      <!-- cards -->
       <section class="fav-cards">
-        <div class="fav-card"></div>
-        <div class="fav-card"></div>
-        <div class="fav-card"></div>
-        <div class="fav-card"></div>
+        <div v-if="filteredFits.length === 0" class="empty-state">
+          <p>No favorite outfits yet.</p>
+          <p>Go to the Outfit Builder and tap the star to save a look ✨</p>
+        </div>
+
+        <div
+          v-for="fit in filteredFits"
+          :key="fit.id"
+          class="fav-card"
+        >
+          <div class="fav-card-header">
+            <span class="fav-card-category">{{ fit.category }}</span>
+            <button
+              type="button"
+              class="fav-delete"
+              @click="handleDeleteFit(fit.id)"
+              aria-label="Remove from favorites"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div class="fav-card-images">
+            <img v-if="fit.topURL" :src="fit.topURL" alt="Top" />
+            <img v-if="fit.bottomURL" :src="fit.bottomURL" alt="Bottom" />
+            <img v-if="fit.shoesURL" :src="fit.shoesURL" alt="Shoes" />
+            <img v-if="fit.jacketURL" :src="fit.jacketURL" alt="Jacket" />
+            <img
+              v-if="fit.accessoryURL"
+              :src="fit.accessoryURL"
+              alt="Accessory"
+            />
+          </div>
+        </div>
       </section>
     </div>
-    <!-- go back button allll the way at the bottom -->
+
+    <!-- footer nav -->
     <div
       style="
         display: flex;
@@ -120,7 +209,6 @@ const catOptions = ["Casual", "Formal", "School", "Work"];
 </template>
 
 <style scoped>
-/* layout: rail + cards */
 .fav-content {
   width: min(1200px, 94vw);
   margin: 20px 0 60px 0;
@@ -130,15 +218,12 @@ const catOptions = ["Casual", "Formal", "School", "Work"];
   margin-bottom: 40px;
 }
 
-/* left category rail – styled to your light lavender family */
 .fav-rail {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
   gap: 24px;
+  align-items: center;
+  justify-content: flex-start;
   padding-top: 6px;
 }
 
@@ -147,42 +232,76 @@ const catOptions = ["Casual", "Formal", "School", "Work"];
   color: white;
   border: none;
   border-radius: 12px;
-  width: 100px; /* make all same width */
-  height: 48px;
-  padding: 10px 16px;
-  font-size: 16px;
-  cursor: default; /* no functionality yet */
+  width: 100px;
+  height: 40px;
+  padding: 8px 14px;
+  font-size: 15px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.cat-pill.active {
+  opacity: 1;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #8f8ae6;
 }
 
 .fav-cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
 }
 
 .fav-card {
-  background-color: #eeeeee; /* same box gray from main.css */
+  background-color: #eeeeee;
   border-radius: 12px;
-  height: clamp(250px, 50vw, 500px);
+  min-height: 260px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  width: 300px;
-}
-
-/* footer buttons centered; color pulled from your global button */
-.fav-footer {
+  padding: 12px 14px;
   display: flex;
-  justify-content: center;
-  gap: 50px;
-  padding: 36px 0 54px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.buttonlike {
-  background-color: #6c67c6; /* same as button */
-  color: #fff;
+.fav-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fav-card-category {
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fav-delete {
   border: none;
-  padding: 12px 26px;
-  border-radius: 6px;
-  font-weight: 700;
+  background: transparent;
+  font-size: 16px;
   cursor: pointer;
+}
+
+.fav-card-images {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 110px;
+  gap: 8px;
+}
+
+.fav-card-images img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: white;
+  border-radius: 8px;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #777;
+  font-size: 14px;
 }
 </style>
