@@ -28,7 +28,6 @@ const showInstructions = ref(false);
 const toggleInstructions = () =>
   (showInstructions.value = !showInstructions.value);
 
-
 function toggleStar() {
   starActive.value = !starActive.value;
 }
@@ -142,8 +141,8 @@ function openTypePalette(type: string) {
 
 // choose item from palette
 function selectFromPalette(type: string, idx: number) {
-  currentIndex.value[type] = idx;  // replace current selected item
-  openPalette.value = null;        // close palette
+  currentIndex.value[type] = idx; // replace current selected item
+  openPalette.value = null; // close palette
 }
 
 // start of favoriting outfit code (dj added this )
@@ -178,7 +177,6 @@ async function handleStarClick() {
   const nameKey = norm(userStore.username);
   const snap = buildCurrentSnapshot();
 
-  // optional: require category to be chosen
   if (!snap.category) {
     alert("Pick a category before saving this outfit.");
     return;
@@ -196,11 +194,11 @@ async function handleStarClick() {
       const payload: FavoriteFitPayload = {
         ...snap,
         key,
+        outfitName: outfitTitle.value.trim() || null,
       };
       await addFavoriteFitByName(nameKey, payload);
     }
 
-    // refresh list + star state
     favoriteFits.value = await listFavoriteFitsByName(nameKey);
   } catch (e) {
     console.error("[FAVFITS] handleStarClick error:", e);
@@ -277,78 +275,89 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
     <!-- outfit -->
     <div class="fit-groups" style="gap: 0px">
       <!-- LEFT-SIDE PALETTE -->
-<div v-if="openPalette" class="palette">
-  <h3 style="margin-bottom: 8px; text-transform: capitalize;">
-    click to choose {{ openPalette }} !
-  </h3>
+      <div v-if="openPalette" class="palette">
+        <h3 style="margin-bottom: 8px; text-transform: capitalize">
+          click to choose {{ openPalette }} !
+        </h3>
 
-  <div class="palette-grid">
-    <div
-      v-for="(item, i) in byType[openPalette]"
-      :key="item.id"
-      class="palette-item"
-      @click="selectFromPalette(openPalette, i)"
-    >
-      <img :src="item.imageURL" />
-    </div>
+        <div class="palette-grid">
+          <div
+            v-for="(item, i) in byType[openPalette]"
+            :key="item.id"
+            class="palette-item"
+            @click="selectFromPalette(openPalette, i)"
+          >
+            <img :src="item.imageURL" />
+          </div>
 
-    <!-- if no items -->
-    <p v-if="byType[openPalette].length === 0" style="opacity: 0.6; grid-column: span 3;">
-      No items in this category
-    </p>
-  </div>
-</div>
+          <!-- if no items -->
+          <p
+            v-if="byType[openPalette].length === 0"
+            style="opacity: 0.6; grid-column: span 3"
+          >
+            No items in this category
+          </p>
+        </div>
+      </div>
       <!-- left top/bottom/shoes -->
       <div class="one-fit">
         <div class="fit-grid">
           <div
-            class="fit-box" @click="openTypePalette('tops')"
-            style="display: flex; align-items: center; justify-content: center; gap: 10px">
-            
-
+            class="fit-box"
+            @click="openTypePalette('tops')"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
             <img
               v-if="currentSelected('tops')"
               :src="currentSelected('tops').imageURL"
               alt="Selected top"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-           
           </div>
         </div>
 
         <div class="fit-grid">
           <div
-            class="fit-box" @click="openTypePalette('bottoms')"
-            style="display: flex;align-items: center;justify-content: center;gap: 10px;">
-           
+            class="fit-box"
+            @click="openTypePalette('bottoms')"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
             <img
               v-if="currentSelected('bottoms')"
               :src="currentSelected('bottoms').imageURL"
               alt="Selected bottoms"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-           
           </div>
         </div>
 
         <div class="fit-grid">
           <div
-            class= "fit-box" @click="openTypePalette('shoes')"
-            style= "display: flex;
+            class="fit-box"
+            @click="openTypePalette('shoes')"
+            style="
+              display: flex;
               align-items: center;
               justify-content: center;
               gap: 10px;
             "
           >
-    
-
             <img
               v-if="currentSelected('shoes')"
               :src="currentSelected('shoes').imageURL"
               alt="Selected shoes"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-          
           </div>
         </div>
       </div>
@@ -359,9 +368,15 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
         <h3></h3>
         <div class="fit-grid">
           <div
-            class="fit-box" @click="openTypePalette('jackets')"
-            style="display: flex; align-items: center; justify-content: center;gap: 10px;">
-
+            class="fit-box"
+            @click="openTypePalette('jackets')"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
             <img
               v-if="currentSelected('jackets')"
               :src="currentSelected('jackets').imageURL"
@@ -374,40 +389,47 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
 
         <div class="fit-grid">
           <div
-            class="fit-box" @click="openTypePalette('accessories')"
-            style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-
-
+            class="fit-box"
+            @click="openTypePalette('accessories')"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
             <img
               v-if="currentSelected('accessories')"
               :src="currentSelected('accessories').imageURL"
               alt="Selected accessories"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-
           </div>
         </div>
       </div>
 
-
-
       <!-- category stuff -->
       <aside class="tagging-rail fit-rail-items">
-              <!-- star stuff -->
-      <div class="star-container">
-        <img
-          :src="
-            isCurrentFavorited ? '/icons/starfilled.png' : '/icons/star.png'
-          "
-          alt="Favorite star"
-          class="star-icon"
-          @click="handleStarClick"
-        />
-      </div>
+        <!-- star stuff -->
+        <div class="star-container">
+          <img
+            :src="
+              isCurrentFavorited ? '/icons/starfilled.png' : '/icons/star.png'
+            "
+            alt="Favorite star"
+            class="star-icon"
+            @click="handleStarClick"
+          />
+        </div>
 
-      <div class=" title-row" >  
-          <input type="text" class="title-input" placeholder="Name your outfit..."  v-model="outfitTitle"/>
-      </div>
+        <div class="title-row">
+          <input
+            type="text"
+            class="title-input"
+            placeholder="Name your outfit..."
+            v-model="outfitTitle"
+          />
+        </div>
 
         <div class="tagging">
           <h3></h3>
@@ -435,7 +457,7 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
     </div>
   </div>
   <!-- go back button allll the way at the bottom -->
-     <div
+  <div
     v-show="showInstructions"
     class="instructions-panel"
     role="dialog"
@@ -445,20 +467,18 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
       ×
     </button>
     <div class="panel-content">
-      <strong
-        > How to to build your outfit
-      </strong>
+      <strong> How to to build your outfit </strong>
       <ol>
-          Click on the item box you want to add or change.
+        Click on the item box you want to add or change.
       </ol>
       <ol>
-          Select your desired clothing piece from the pop-up
+        Select your desired clothing piece from the pop-up
       </ol>
       <ol>
-          Click on the star to favorite your outfit
+        Click on the star to favorite your outfit
       </ol>
       <ol>
-          View your outfits by clicking "Favorite Outfits"
+        View your outfits by clicking "Favorite Outfits"
       </ol>
     </div>
   </div>
