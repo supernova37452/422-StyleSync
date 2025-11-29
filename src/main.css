@@ -53,15 +53,17 @@ button {
   justify-content: center;
   border-radius: 6px;
 }
+
+
 /* shoved all the outfit stuff in here idk */
+
+
 .fit-groups {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-
-  padding: 10px;
-  margin-right: -80px;
-  flex-wrap: nowrap;
+  width: 100%;
+  padding-left: 230px; /* room for palette */
 }
 .fit-grid {
   display: grid;
@@ -83,13 +85,13 @@ button {
   flex-direction: column;
   align-items: center;
   gap: 0px;
-  margin: 0px -70px;
+  margin: 0px -75px;
 }
 .star-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 10 10px; /* space between outfit boxes and dropdown */
+  margin: 20 0px; /* space between outfit boxes and dropdown */
 }
 
 .star-icon {
@@ -107,12 +109,111 @@ button {
 .fit-rail-items {
   position: static;
   right: 0px;
-  left: 900px;
+  left: 0px;
   top: 200px;
-  width: 330px;
+  width: 300px;
   z-index: 1;
+  margin: 15px;
   isolation: isolate;
 }
+
+
+
+/* palette grid */
+
+/* LEFT PALETTE AREA */
+.palette {
+  position: fixed;
+  left: 55px;                 /* adds gap from left edge */
+  top: 120px;
+  width: 320px;
+  padding: 14px;
+  background: #ffffff;        
+  border: 2px solid #e6e6e6;
+  border-radius: 14px;
+  height: calc(100vh - 300px);
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12); /* shadow */
+  z-index: 20;
+}
+
+/* the 3-per-row grid */
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+/* individual item squares */
+.palette-item {
+  background: #eee;
+  border-radius: 6px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.1s ease;
+}
+
+.palette-item:hover {
+  transform: scale(1.05);
+}
+
+/* images */
+.palette-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.title-row {
+  flex-direction: row;      
+  align-items: center;    
+  gap: 10px;  
+  width: 100%;      
+}
+
+.title-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.title-input {
+  width: 100%;
+  padding: 14px 9px;
+  border-radius: 10px;
+  border: None;
+  transition: border-color 0.2s;
+  background: #8581ce;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title-input::placeholder {
+  color: white;
+  opacity: 1; /* prevents browsers from dimming it */
+}
+
+/* The purple highlight */
+.title-input:focus {
+  border-color: #a855f7; /* purple-500 */
+  outline: none;
+}
+
+/* end of the oufit stuff*/
 
 .arrow-btn {
   background: none;
@@ -408,7 +509,7 @@ button {
   position: absolute;
   inset-inline: 0;
   top: calc(100% + 6px);
-  background: #9a96e0;
+  background: #8581ce;
   border-radius: 14px;
   padding: 6px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);

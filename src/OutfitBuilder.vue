@@ -22,6 +22,12 @@ const selectedcat = ref(null);
 const openMenu = ref(null);
 const starActive = ref(false);
 const favoriteFits = ref<any[]>([]); // for saving outfit
+const outfitTitle = ref("");
+
+const showInstructions = ref(false);
+const toggleInstructions = () =>
+  (showInstructions.value = !showInstructions.value);
+
 
 function toggleStar() {
   starActive.value = !starActive.value;
@@ -126,6 +132,20 @@ function currentSelected(type: string) {
   const idx = currentIndex.value[type];
   return arr && arr.length ? arr[idx] : null;
 }
+
+const openPalette = ref<string | null>(null);
+
+// open palette when clicking a clothing box
+function openTypePalette(type: string) {
+  openPalette.value = type;
+}
+
+// choose item from palette
+function selectFromPalette(type: string, idx: number) {
+  currentIndex.value[type] = idx;  // replace current selected item
+  openPalette.value = null;        // close palette
+}
+
 // start of favoriting outfit code (dj added this )
 function buildCurrentSnapshot() {
   const top = currentSelected("tops");
@@ -256,19 +276,35 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
     </div>
     <!-- outfit -->
     <div class="fit-groups" style="gap: 0px">
+      <!-- LEFT-SIDE PALETTE -->
+<div v-if="openPalette" class="palette">
+  <h3 style="margin-bottom: 8px; text-transform: capitalize;">
+    click to choose {{ openPalette }} !
+  </h3>
+
+  <div class="palette-grid">
+    <div
+      v-for="(item, i) in byType[openPalette]"
+      :key="item.id"
+      class="palette-item"
+      @click="selectFromPalette(openPalette, i)"
+    >
+      <img :src="item.imageURL" />
+    </div>
+
+    <!-- if no items -->
+    <p v-if="byType[openPalette].length === 0" style="opacity: 0.6; grid-column: span 3;">
+      No items in this category
+    </p>
+  </div>
+</div>
       <!-- left top/bottom/shoes -->
       <div class="one-fit">
         <div class="fit-grid">
           <div
-            class="fit-box"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 10px;
-            "
-          >
-            <button class="arrow-btn" @click="prevItem('tops')">◀</button>
+            class="fit-box" @click="openTypePalette('tops')"
+            style="display: flex; align-items: center; justify-content: center; gap: 10px">
+            
 
             <img
               v-if="currentSelected('tops')"
@@ -276,43 +312,35 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
               alt="Selected top"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-            <button class="arrow-btn" @click="nextItem('tops')">▶</button>
+           
           </div>
         </div>
 
         <div class="fit-grid">
           <div
-            class="fit-box"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 10px;
-            "
-          >
-            <button class="arrow-btn" @click="prevItem('bottoms')">◀</button>
-
+            class="fit-box" @click="openTypePalette('bottoms')"
+            style="display: flex;align-items: center;justify-content: center;gap: 10px;">
+           
             <img
               v-if="currentSelected('bottoms')"
               :src="currentSelected('bottoms').imageURL"
               alt="Selected bottoms"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-            <button class="arrow-btn" @click="nextItem('bottoms')">▶</button>
+           
           </div>
         </div>
 
         <div class="fit-grid">
           <div
-            class="fit-box"
-            style="
-              display: flex;
+            class= "fit-box" @click="openTypePalette('shoes')"
+            style= "display: flex;
               align-items: center;
               justify-content: center;
               gap: 10px;
             "
           >
-            <button class="arrow-btn" @click="prevItem('shoes')">◀</button>
+    
 
             <img
               v-if="currentSelected('shoes')"
@@ -320,7 +348,7 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
               alt="Selected shoes"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-            <button class="arrow-btn" @click="nextItem('shoes')">▶</button>
+          
           </div>
         </div>
       </div>
@@ -331,15 +359,8 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
         <h3></h3>
         <div class="fit-grid">
           <div
-            class="fit-box"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 10px;
-            "
-          >
-            <button class="arrow-btn" @click="prevItem('jackets')">◀</button>
+            class="fit-box" @click="openTypePalette('jackets')"
+            style="display: flex; align-items: center; justify-content: center;gap: 10px;">
 
             <img
               v-if="currentSelected('jackets')"
@@ -347,23 +368,15 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
               alt="Selected jackets"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-            <button class="arrow-btn" @click="nextItem('jackets')">▶</button>
+            <!-- <button class="arrow-btn" @click="nextItem('jackets')">▶</button> -->
           </div>
         </div>
 
         <div class="fit-grid">
           <div
-            class="fit-box"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 10px;
-            "
-          >
-            <button class="arrow-btn" @click="prevItem('accessories')">
-              ◀
-            </button>
+            class="fit-box" @click="openTypePalette('accessories')"
+            style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+
 
             <img
               v-if="currentSelected('accessories')"
@@ -371,14 +384,16 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
               alt="Selected accessories"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-            <button class="arrow-btn" @click="nextItem('accessories')">
-              ▶
-            </button>
+
           </div>
         </div>
       </div>
 
-      <!-- star stuff -->
+
+
+      <!-- category stuff -->
+      <aside class="tagging-rail fit-rail-items">
+              <!-- star stuff -->
       <div class="star-container">
         <img
           :src="
@@ -390,8 +405,10 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
         />
       </div>
 
-      <!-- category stuff -->
-      <aside class="tagging-rail fit-rail-items">
+      <div class=" title-row" >  
+          <input type="text" class="title-input" placeholder="Name your outfit..."  v-model="outfitTitle"/>
+      </div>
+
         <div class="tagging">
           <h3></h3>
           <h3></h3>
@@ -418,9 +435,39 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
     </div>
   </div>
   <!-- go back button allll the way at the bottom -->
+     <div
+    v-show="showInstructions"
+    class="instructions-panel"
+    role="dialog"
+    aria-modal="true"
+  >
+    <button class="close-x" @click="toggleInstructions" aria-label="Close">
+      ×
+    </button>
+    <div class="panel-content">
+      <strong
+        > How to to build your outfit
+      </strong>
+      <ol>
+          Click on the item box you want to add or change.
+      </ol>
+      <ol>
+          Select your desired clothing piece from the pop-up
+      </ol>
+      <ol>
+          Click on the star to favorite your outfit
+      </ol>
+      <ol>
+          View your outfits by clicking "Favorite Outfits"
+      </ol>
+    </div>
+  </div>
   <div
     style="display: flex; justify-content: center; gap: 30px; margin-top: 20px"
   >
+    <button class="footer-btn left" @click="toggleInstructions">
+      View Instructions
+    </button>
     <button class="button">
       <RouterLink to="/closet" style="color: inherit; text-decoration: none">
         Closet View
