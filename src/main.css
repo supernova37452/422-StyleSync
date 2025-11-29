@@ -2,7 +2,7 @@ html, body {
   overflow-x: hidden;
 }
 
-.header-bar {
+/* .header-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -11,7 +11,41 @@ html, body {
   text-align: center;
   margin: 0;
   font-weight: 500;
+} */
+.header-bar {
+  display: flex;
+  align-items: center; 
+  justify-content: space-between;
+  padding: 20px 20px 0; 
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  font-weight: 500;
 }
+
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.username-pill {
+  background-color: #8581ce;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-weight: 600;
+}
+
+.back-btn {
+  background-color: #d1cde3;
+  color: #fff;
+  border-radius: 10px;
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 
 button {
   background-color: #8581ce;
@@ -255,6 +289,33 @@ button {
   opacity: 0.8;
 }
 
+.remove-bg-btn {
+  width: 100%;       
+  padding: 14px 20px;     
+  border-radius: 14px;      
+  border: none;
+  background: #8581ce;
+  color: #fff;
+  font-family: "Playfair Display", serif;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+  margin-top: 4px;  
+}
+
+.remove-bg-btn:hover:not([disabled]):not([aria-disabled="true"]) {
+  background: #9a96e0;
+  transform: translateY(-1px);
+}
+
+.remove-bg-btn[disabled],
+.remove-bg-btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
 .bottom-buttons {
   position: fixed;
   bottom: 50px;
@@ -278,11 +339,6 @@ button {
   cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease;
   position: absolute;
-}
-
-.footer-btn:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
 }
 
 .footer-btn:active {
@@ -383,7 +439,6 @@ button {
   border-radius: 10px;
 }
 
-/* .hidden-file { display: none; } */
 /* 
 .upload-container {
   display: flex;
@@ -403,6 +458,28 @@ button {
   justify-content: center;
   overflow: hidden;
 } */
+
+.hidden-input {
+  display: none;
+}
+.upload-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.uploaded-img {
+  max-width: 420px;
+  border-radius: 8px;
+}
+
+/* footer buttons disabled look */
+.footer-btn[disabled],
+.footer-btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 
 .placeholder-icon {
   width: 160px;
@@ -514,7 +591,49 @@ button {
   padding: 6px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
   z-index: 1001;
+  max-height: 190px;
+  overflow-y: auto;  
+  scrollbar-width: thick;
+  scrollbar-color: #ffffff rgba(255, 255, 255, 0.25);
 }
+
+.menu::-webkit-scrollbar {
+  width: 10px;
+}
+
+.menu::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+}
+
+.menu::-webkit-scrollbar-thumb {
+  background: #ffffff;
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.06);
+}
+
+.menu::-webkit-scrollbar-thumb:hover {
+  background: #f5f5f5;
+}
+
+.back-btn {
+  background-color: #8581ce;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* .username-pill {
+  background-color: #8581ce;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 600;
+} */
+
+
 
 .menu-item {
   width: 100%;
@@ -539,6 +658,6 @@ button {
   border-radius: 8px;
   border: 1px solid #ccc;
   background: #f4f4f4;
-  transform: scale(0.9); /* shrink each image, t0o big */
+  transform: scale(0.9);
   transition: transform 0.2s ease;
 }

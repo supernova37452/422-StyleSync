@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { userStore } from "@/stores/userStore";
 import { norm } from "@/lib/username";
 import { weatherStore } from "@/stores/weatherStore";
-import { uploadClosetImageByName } from "@/lib/storage"; // <-- NEW
+import { uploadClosetImageByName } from "@/lib/storage";
 import { addClosetItemByName } from "@/lib/closet";
 
 const temperature = computed(() => weatherStore.temperature);
@@ -15,6 +15,9 @@ const route = useRoute();
 const router = useRouter();
 const username = computed(() => userStore.username || "Guest");
 const showInstructions = ref(false);
+const closeInstructions = () => {
+  showInstructions.value = false;
+};
 const toggleInstructions = () =>
   (showInstructions.value = !showInstructions.value);
 
@@ -23,11 +26,10 @@ const itemType = computed(() => {
   return typeof t === "string" ? t : "tops";
 });
 
-// ---- NEW: state for upload + result
 const fileInput = ref(null);
 const selectedFile = ref(null); // the actual File object we will send
-const selectedImage = ref(null); // preview of original file
-const resultUrl = ref(""); // preview of the background-removed PNG
+const selectedImage = ref(null); //preview of original file
+const resultUrl = ref(""); // preview of the backgroundremoved PNG
 const loading = ref(false);
 const errorMsg = ref("");
 const bgRemoved = ref(false);
@@ -35,7 +37,24 @@ const adding = ref(false);
 const successMsg = ref("");
 
 const seasonOptions = ["Year Round", "Summer", "Fall", "Winter", "Spring"];
-const colorOptions = ["Blue", "Green", "Red", "Black", "White", "Other"];
+const colorOptions = [
+  "Black", "White", "Grey", "Light Grey", "Dark Grey",
+  "Beige", "Cream", "Brown", "Tan", "Khaki",
+  "Blue", "Light Blue", "Sky Blue", "Baby Blue", "Royal Blue",
+  "Navy", "Midnight Blue", "Teal", "Turquoise",
+  "Green", "Light Green", "Mint", "Olive", "Forest Green",
+  "Dark Green", "Sage", "Army Green",
+  "Red", "Dark Red", "Maroon", "Burgundy",
+  "Pink", "Light Pink", "Hot Pink", "Magenta", "Rose",
+  "Purple", "Lavender", "Lilac", "Deep Purple", "Violet",
+  "Yellow", "Pastel Yellow", "Mustard", "Gold",
+  "Orange", "Peach", "Coral", "Rust",
+  "Silver", "Charcoal", "Champagne",
+  "Nude", "Off-White", "Ivory",
+  "Multi-Color", "Patterned", "Printed", "Other"
+];
+
+
 
 const selectedSeason = ref(null);
 const selectedColor = ref(null);
@@ -65,7 +84,6 @@ function onFilesChange(e) {
   errorMsg.value = "";
 }
 
-// ---- NEW: call our backend proxy -> PhotoRoom NOTE: i rewrite parts of this to make the call a bit faster
 async function removeBackground() {
   if (!selectedFile.value) {
     errorMsg.value = "Pick an image first.";
@@ -153,7 +171,6 @@ async function addToCloset() {
   }
 }
 
-// keep if you need routing later
 function proceed() {
   router.push("/upload");
 }
@@ -178,6 +195,20 @@ function pickColor(c) {
 
   closeMenus();
 }
+function handleClickOutside() {
+  //any click that isn't stopped by @click.stop
+  closeMenus();
+  closeInstructions();
+}
+
+onMounted(() => {
+  window.addEventListener("click", handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("click", handleClickOutside);
+});
+
 //NOTE: this is what i assume for what u need for the db @ shuroq
 //so when u do const tags = getTagPayload() --> you can save these vars
 function getTagPayload() {
@@ -202,49 +233,62 @@ function revokeUrl(url) {
     objectUrls.delete(url);
   }
 }
+
+function goToCloset() {
+  router.push("/closet");
+}
+
 </script>
 
 <template>
   <div class="header-bar">
-    <button class="button">{{ username }}</button>
-    <h1>Add Your Items</h1>
-    <button
-      class="button"
+  <div class="header-left">
+    <button class="button username-pill">
+      {{ username }}
+    </button>
+
+    <button class="button back-btn" @click="goToCloset">Back to Closet</button>
+  </div>
+
+  <h1>Add Your Items</h1>
+  <button
+    class="button"
+    style="
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 12px;
+    "
+  >
+    <div
       style="
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 8px 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        line-height: 1.2;
+        max-width: 100px;
+        word-wrap: break-word;
       "
     >
-      <div
-        style="
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          text-align: left;
-          line-height: 1.2;
-          max-width: 100px;
-          word-wrap: break-word;
-        "
+      <span>{{ temperature }}°</span>
+      <small
+        v-if="shortForecast"
+        style="font-size: 12px; max-width: 100px; word-wrap: break-word"
       >
-        <span>{{ temperature }}°</span>
-        <small
-          v-if="shortForecast"
-          style="font-size: 12px; max-width: 100px; word-wrap: break-word"
-        >
-          {{ shortForecast }}
-        </small>
-      </div>
-      <img
-        v-if="icon"
-        :src="icon"
-        alt="Weather icon"
-        style="width: 40px; height: 40px"
-      />
-    </button>
-  </div>
+        {{ shortForecast }}
+      </small>
+    </div>
+    <img
+      v-if="icon"
+      :src="icon"
+      alt="Weather icon"
+      style="width: 40px; height: 40px"
+    />
+  </button>
+</div>
+
 
   <div class="upload-container" style="margin: 24px auto 140px">
     <div class="upload-box">
@@ -256,16 +300,13 @@ function revokeUrl(url) {
       />
     </div>
 
-    <!-- Result preview -->
     <div v-if="resultUrl" class="upload-box" style="margin-top: 12px">
       <img :src="resultUrl" alt="Background-removed" class="uploaded-img" />
     </div>
 
-    <!-- Error message -->
     <p v-if="errorMsg" style="color: #d33; margin-top: 8px">{{ errorMsg }}</p>
   </div>
 
-  <!-- Hidden file input -->
   <input
     ref="fileInput"
     type="file"
@@ -275,41 +316,29 @@ function revokeUrl(url) {
   />
 
   <div class="bottom-buttons">
-    <button class="footer-btn left" @click="toggleInstructions">
-      View Instructions
-    </button>
+  <button class="footer-btn left" @click.stop="toggleInstructions">
+    View Instructions
+  </button>
 
-    <!-- Upload (pick file) -->
-    <button
-      v-if="!canAddToCloset"
-      class="footer-btn main-btn"
-      @click="pickFiles"
-      :disabled="loading"
-      :aria-disabled="loading"
-    >
-      Upload
-    </button>
+  <button
+    class="footer-btn main-btn"
+    @click="pickFiles"
+    :disabled="loading"
+    :aria-disabled="loading"
+  >
+    {{ "Pick Item" }}
+  </button>
 
-    <button
-      v-if="canAddToCloset"
-      class="footer-btn main-btn"
-      @click="addToCloset"
-      :disabled="adding"
-      :aria-disabled="adding"
-    >
-      {{ adding ? "Saving…" : "Add Item to Closet" }}
-    </button>
+  <button
+    class="footer-btn right"
+    @click="addToCloset"
+    :disabled="!canAddToCloset || adding"
+    :aria-disabled="!canAddToCloset || adding"
+  >
+    {{ adding ? "Saving…" : "Add to Closet" }}
+  </button>
+</div>
 
-    <!-- NEW: Remove background action -->
-    <button
-      class="footer-btn right"
-      :disabled="!selectedFile || loading"
-      @click="removeBackground"
-      :aria-disabled="!selectedFile || loading"
-    >
-      {{ loading ? "Removing…" : "Remove" }}
-    </button>
-  </div>
   <div
     v-show="showInstructions"
     class="instructions-panel"
@@ -326,14 +355,14 @@ function revokeUrl(url) {
       </strong>
       <ol>
         <li>
-          Click <strong>Upload </strong> to choose a PNG/JPG from your files.
+          Click <strong>Pick Item </strong> to choose a PNG/JPG from your files.
           The more centered your item is, the better.
         </li>
         <li>
-          Click <strong>Remove</strong> to remove the background of your photo.
+          Click <strong>Remove Background</strong> to remove the background of your photo.
         </li>
         <li>
-          Tag the item via the dropdown based on the color it is and the season
+          Tag the item via the dropdown based on the color (scroll to see more) it is and the season
           you would wear it for!
         </li>
       </ol>
@@ -346,45 +375,55 @@ function revokeUrl(url) {
     </div>
   </div>
   <aside class="tagging-rail additional-rail-items">
-    <div class="tagging">
-      <!--season stuff-->
-      <div class="tag-dropdown" :class="{ open: openMenu === 'season' }">
-        <button class="tag-trigger" @click.stop="toggleMenu('season')">
-          <span class="label">Season:</span>
-          <span class="value">{{ selectedSeason }}</span>
-          <span class="chev">▾</span>
+  <div class="tagging">
+    <!-- Season -->
+    <div class="tag-dropdown" :class="{ open: openMenu === 'season' }">
+      <button class="tag-trigger" @click.stop="toggleMenu('season')">
+        <span class="label">Season:</span>
+        <span class="value">{{ selectedSeason || "Select season" }}</span>
+        <span class="chev">▾</span>
+      </button>
+      <div v-if="openMenu === 'season'" class="menu">
+        <button
+          v-for="s in seasonOptions"
+          :key="s"
+          class="menu-item"
+          @click.stop="pickSeason(s)"
+        >
+          {{ s }} <span v-if="selectedSeason === s" class="mark">✓</span>
         </button>
-        <div v-if="openMenu === 'season'" class="menu">
-          <button
-            v-for="s in seasonOptions"
-            :key="s"
-            class="menu-item"
-            @click.stop="pickSeason(s)"
-          >
-            {{ s }} <span v-if="selectedSeason === s" class="mark">✓</span>
-          </button>
-        </div>
-      </div>
-      <!--for color-->
-      <div class="tag-dropdown" :class="{ open: openMenu === 'color' }">
-        <button class="tag-trigger" @click.stop="toggleMenu('color')">
-          <span class="label">Color:</span>
-          <span class="value">{{ selectedColor }}</span>
-          <span class="chev">▾</span>
-        </button>
-        <div v-if="openMenu === 'color'" class="menu">
-          <button
-            v-for="c in colorOptions"
-            :key="c"
-            class="menu-item"
-            @click.stop="pickColor(c)"
-          >
-            {{ c }} <span v-if="selectedColor === c" class="mark">✓</span>
-          </button>
-        </div>
       </div>
     </div>
-  </aside>
+
+    <!-- Color -->
+    <div class="tag-dropdown" :class="{ open: openMenu === 'color' }">
+      <button class="tag-trigger" @click.stop="toggleMenu('color')">
+        <span class="label">Color:</span>
+        <span class="value">{{ selectedColor || "Select color" }}</span>
+        <span class="chev">▾</span>
+      </button>
+      <div v-if="openMenu === 'color'" class="menu">
+        <button
+          v-for="c in colorOptions"
+          :key="c"
+          class="menu-item"
+          @click.stop="pickColor(c)"
+        >
+          {{ c }} <span v-if="selectedColor === c" class="mark">✓</span>
+        </button>
+      </div>
+    </div>
+    <button
+      class="remove-bg-btn"
+      @click="removeBackground"
+      :disabled="!selectedFile || loading"
+      :aria-disabled="!selectedFile || loading"
+    >
+      {{ loading ? "Removing…" : "Remove Background" }}
+    </button>
+  </div>
+</aside>
+
 </template>
 
 <style scoped>
@@ -400,7 +439,7 @@ function revokeUrl(url) {
   max-width: 420px;
   border-radius: 8px;
 }
-.bottom-buttons {
+/* .bottom-buttons {
   display: flex;
   gap: 0.5rem;
   justify-content: space-between;
@@ -410,5 +449,5 @@ function revokeUrl(url) {
 .footer-btn[aria-disabled="true"] {
   opacity: 0.6;
   cursor: not-allowed;
-}
+} */
 </style>
