@@ -71,6 +71,7 @@ export type FavoriteFitPayload = {
   accessoryURL?: string | null;
   category: string | null;
   key: string; // unique signature for this combo
+  outfitName?: string | null;
 };
 
 // create a new fav fit doc under usernames/{name}/favFits

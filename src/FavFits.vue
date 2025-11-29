@@ -149,13 +149,11 @@ async function handleDeleteFit(fitId: string) {
           <p>Go to the Outfit Builder and tap the star to save a look ✨</p>
         </div>
 
-        <div
-          v-for="fit in filteredFits"
-          :key="fit.id"
-          class="fav-card"
-        >
+        <div v-for="fit in filteredFits" :key="fit.id" class="fav-card">
           <div class="fav-card-header">
-            <span class="fav-card-category">{{ fit.category }}</span>
+            <span class="fav-card-category">
+              {{ fit.outfitName || fit.category || "Untitled Outfit" }}
+            </span>
             <button
               type="button"
               class="fav-delete"
