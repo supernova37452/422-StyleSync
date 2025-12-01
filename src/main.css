@@ -661,3 +661,9 @@ button {
   transform: scale(0.9);
   transition: transform 0.2s ease;
 }
+.fit-groups .one-fit h3 {
+  margin: 0;
+  padding: 0;
+  height: 0;
+  line-height: 0;
+}

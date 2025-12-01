@@ -18,10 +18,10 @@ const shortForecast = computed(() => weatherStore.shortForecast);
 const username = computed(() => userStore.username || "Guest");
 
 const catOptions = ["Casual", "Formal", "School", "Work"];
-const selectedcat = ref(null);
-const openMenu = ref(null);
+const selectedcat = ref<string | null>(null);
+const openMenu = ref<string | null>(null);
 const starActive = ref(false);
-const favoriteFits = ref<any[]>([]); // for saving outfit
+const favoriteFits = ref<any[]>([]);
 const outfitTitle = ref("");
 
 const showInstructions = ref(false);
@@ -32,7 +32,7 @@ function toggleStar() {
   starActive.value = !starActive.value;
 }
 
-function toggleMenu(which) {
+function toggleMenu(which: string) {
   openMenu.value = openMenu.value === which ? null : which;
 }
 
@@ -40,7 +40,7 @@ function closeMenus() {
   openMenu.value = null;
 }
 
-function pickCategory(s) {
+function pickCategory(s: string) {
   selectedcat.value = s;
   closeMenus();
 }
@@ -64,6 +64,7 @@ async function bindToName(name: string | null) {
     stop = subscribeClosetItemsByName(key, (arr) => (items.value = arr));
   } catch {}
 }
+
 // loading what the user already has previously saved
 async function loadFavoritesForName(name: string | null) {
   favoriteFits.value = [];
@@ -75,7 +76,7 @@ async function loadFavoritesForName(name: string | null) {
     console.warn("[FAVFITS] listFavoriteFitsByName error:", e);
   }
 }
-// small edits to the watch
+
 watch(
   () => userStore.username,
   async (u) => {
@@ -105,13 +106,19 @@ const byType = computed(() => {
   return g;
 });
 
-const currentIndex = ref({
+const currentIndex = ref<Record<string, number>>({
   tops: 0,
   bottoms: 0,
   shoes: 0,
   jackets: 0,
-  accessories: 0,
+  accessories: -1, // -1 means "no primary accessory selected"
 });
+
+// separate index for the second accessory
+const secondAccessoryIndex = ref<number | null>(null);
+
+// remembers which accessory slot opened the palette: "first" | "second"
+const paletteAccessorySlot = ref<"first" | "second" | null>(null);
 
 function nextItem(type: string) {
   const arr = byType.value[type];
@@ -129,29 +136,120 @@ function prevItem(type: string) {
 function currentSelected(type: string) {
   const arr = byType.value[type];
   const idx = currentIndex.value[type];
-  return arr && arr.length ? arr[idx] : null;
+  if (!arr || arr.length === 0) return null;
+  if (idx == null || idx < 0 || idx >= arr.length) return null; // support "none"
+  return arr[idx];
 }
+
+// accessory helpers
+const primaryAccessory = computed(() => {
+  const arr = byType.value["accessories"];
+  const idx = currentIndex.value["accessories"];
+  if (!arr || idx == null || idx < 0 || idx >= arr.length) return null;
+  return arr[idx];
+});
+
+const secondaryAccessory = computed(() => {
+  const arr = byType.value["accessories"];
+  const idx = secondAccessoryIndex.value;
+  if (!arr || idx == null || idx < 0 || idx >= arr.length) return null;
+  return arr[idx];
+});
 
 const openPalette = ref<string | null>(null);
 
 // open palette when clicking a clothing box
-function openTypePalette(type: string) {
+function openTypePalette(type: string, slot?: "first" | "second") {
   openPalette.value = type;
+  paletteAccessorySlot.value =
+    type === "accessories" ? slot ?? "first" : null;
+}
+
+function closePalette() {
+  openPalette.value = null;
+  paletteAccessorySlot.value = null;
 }
 
 // choose item from palette
 function selectFromPalette(type: string, idx: number) {
-  currentIndex.value[type] = idx; // replace current selected item
-  openPalette.value = null; // close palette
+  const arr = byType.value[type];
+  if (!arr || arr.length === 0) {
+    if (type === "accessories") {
+      currentIndex.value["accessories"] = -1;
+      secondAccessoryIndex.value = null;
+    } else {
+      currentIndex.value[type] = -1;
+    }
+    closePalette();
+    return;
+  }
+
+  if (type === "accessories") {
+    const slot = paletteAccessorySlot.value;
+    const firstIdx = currentIndex.value["accessories"];
+    const secondIdx = secondAccessoryIndex.value;
+
+    // If no accessories yet, always place in the primary (middle) box
+    if (firstIdx == null || firstIdx < 0) {
+      currentIndex.value["accessories"] = idx;
+      secondAccessoryIndex.value = null;
+    } else if (secondIdx == null || secondIdx < 0) {
+      // We have one accessory, but no second yet → new goes to second
+      secondAccessoryIndex.value = idx;
+    } else {
+      // Both exist, update whichever slot opened the palette
+      if (slot === "second") {
+        secondAccessoryIndex.value = idx;
+      } else {
+        currentIndex.value["accessories"] = idx;
+      }
+    }
+  } else {
+    currentIndex.value[type] = idx;
+  }
+
+  closePalette();
 }
 
-// start of favoriting outfit code (dj added this )
+// choose "no item selected" for a given type
+function selectNone(type: string) {
+  if (type === "accessories") {
+    const slot = paletteAccessorySlot.value;
+    const arr = byType.value["accessories"];
+
+    if (slot === "second") {
+      // Clear ONLY the second accessory box
+      secondAccessoryIndex.value = null;
+    } else {
+      // Clear primary accessory
+      currentIndex.value["accessories"] = -1;
+
+      // If there was a second accessory, promote it to primary
+      if (
+        secondAccessoryIndex.value != null &&
+        secondAccessoryIndex.value >= 0 &&
+        arr &&
+        secondAccessoryIndex.value < arr.length
+      ) {
+        currentIndex.value["accessories"] = secondAccessoryIndex.value;
+        secondAccessoryIndex.value = null;
+      }
+    }
+  } else if (type === "jackets") {
+    // Jackets are optional - allow clearing them
+    currentIndex.value["jackets"] = -1;
+  }
+
+  closePalette();
+}
+
+// start of favoriting outfit code
 function buildCurrentSnapshot() {
   const top = currentSelected("tops");
   const bottom = currentSelected("bottoms");
   const shoes = currentSelected("shoes");
   const jacket = currentSelected("jackets");
-  const accessory = currentSelected("accessories");
+  const accessory = primaryAccessory.value; // primary accessory only
 
   const category = selectedcat.value || null;
 
@@ -177,6 +275,12 @@ async function handleStarClick() {
   const nameKey = norm(userStore.username);
   const snap = buildCurrentSnapshot();
 
+  // ✅ NEW: Require top + bottom + shoes to save
+  if (!snap.topURL || !snap.bottomURL || !snap.shoesURL) {
+    alert("Please select a top, bottom, and shoes before saving this outfit.");
+    return;
+  }
+
   if (!snap.category) {
     alert("Pick a category before saving this outfit.");
     return;
@@ -187,10 +291,8 @@ async function handleStarClick() {
 
   try {
     if (existing) {
-      // un-favorite
       await deleteFavoriteFitById(nameKey, existing.id);
     } else {
-      // favorite
       const payload: FavoriteFitPayload = {
         ...snap,
         key,
@@ -205,7 +307,6 @@ async function handleStarClick() {
   }
 }
 
-// keep the UI star in sync with the data
 watch(
   () => isCurrentFavorited.value,
   (val) => {
@@ -224,10 +325,7 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
     category: snap.category,
   });
 }
-
-// end of favoriting outfit code (dj added this )
 </script>
-<!-- outfit builder i stole chunks from other stuff so the names are off sometimes idk -->
 
 <template>
   <div>
@@ -272,33 +370,46 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
         />
       </button>
     </div>
+
     <!-- outfit -->
     <div class="fit-groups" style="gap: 0px">
       <!-- LEFT-SIDE PALETTE -->
       <div v-if="openPalette" class="palette">
-        <h3 style="margin-bottom: 8px; text-transform: capitalize">
-          click to choose {{ openPalette }} !
-        </h3>
+        <div class="palette-header">
+          <h3 style="text-transform: capitalize">
+            Click To Choose {{ openPalette }} !
+          </h3>
+          <button class="palette-close" @click="closePalette">×</button>
+        </div>
 
         <div class="palette-grid">
+          <!-- "None selected" ONLY for jackets & accessories -->
           <div
-            v-for="(item, i) in byType[openPalette]"
+            v-if="openPalette === 'jackets' || openPalette === 'accessories'"
+            class="palette-item palette-none"
+            @click="selectNone(openPalette!)"
+          >
+            <span>No {{ openPalette }} selected</span>
+          </div>
+
+          <div
+            v-for="(item, i) in byType[openPalette!]"
             :key="item.id"
             class="palette-item"
-            @click="selectFromPalette(openPalette, i)"
+            @click="selectFromPalette(openPalette!, i)"
           >
             <img :src="item.imageURL" />
           </div>
 
-          <!-- if no items -->
           <p
-            v-if="byType[openPalette].length === 0"
+            v-if="byType[openPalette!].length === 0"
             style="opacity: 0.6; grid-column: span 3"
           >
             No items in this category
           </p>
         </div>
       </div>
+
       <!-- left top/bottom/shoes -->
       <div class="one-fit">
         <div class="fit-grid">
@@ -314,7 +425,7 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
           >
             <img
               v-if="currentSelected('tops')"
-              :src="currentSelected('tops').imageURL"
+              :src="currentSelected('tops')!.imageURL"
               alt="Selected top"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
@@ -334,7 +445,7 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
           >
             <img
               v-if="currentSelected('bottoms')"
-              :src="currentSelected('bottoms').imageURL"
+              :src="currentSelected('bottoms')!.imageURL"
               alt="Selected bottoms"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
@@ -354,7 +465,7 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
           >
             <img
               v-if="currentSelected('shoes')"
-              :src="currentSelected('shoes').imageURL"
+              :src="currentSelected('shoes')!.imageURL"
               alt="Selected shoes"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
@@ -362,10 +473,12 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
         </div>
       </div>
 
-      <!-- right jackets accessories -->
+      <!-- right jackets + accessories (2 slots) -->
       <div class="one-fit">
         <h3></h3>
         <h3></h3>
+
+        <!-- Jacket slot (always shows a box, empty if no jacket chosen) -->
         <div class="fit-grid">
           <div
             class="fit-box"
@@ -379,18 +492,18 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
           >
             <img
               v-if="currentSelected('jackets')"
-              :src="currentSelected('jackets').imageURL"
+              :src="currentSelected('jackets')!.imageURL"
               alt="Selected jackets"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
-            <!-- <button class="arrow-btn" @click="nextItem('jackets')">▶</button> -->
           </div>
         </div>
 
+        <!-- Primary accessory slot (middle right) -->
         <div class="fit-grid">
           <div
             class="fit-box"
-            @click="openTypePalette('accessories')"
+            @click="openTypePalette('accessories', 'first')"
             style="
               display: flex;
               align-items: center;
@@ -399,9 +512,30 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
             "
           >
             <img
-              v-if="currentSelected('accessories')"
-              :src="currentSelected('accessories').imageURL"
-              alt="Selected accessories"
+              v-if="primaryAccessory"
+              :src="primaryAccessory!.imageURL"
+              alt="Selected accessory"
+              style="max-width: 80%; max-height: 100%; object-fit: contain"
+            />
+          </div>
+        </div>
+
+        <!-- Secondary accessory slot (bottom right) -->
+        <div class="fit-grid">
+          <div
+            class="fit-box"
+            @click="openTypePalette('accessories', 'second')"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
+            <img
+              v-if="secondaryAccessory"
+              :src="secondaryAccessory!.imageURL"
+              alt="Second accessory"
               style="max-width: 80%; max-height: 100%; object-fit: contain"
             />
           </div>
@@ -410,7 +544,6 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
 
       <!-- category stuff -->
       <aside class="tagging-rail fit-rail-items">
-        <!-- star stuff -->
         <div class="star-container">
           <img
             :src="
@@ -456,7 +589,8 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
       </aside>
     </div>
   </div>
-  <!-- go back button allll the way at the bottom -->
+
+  <!-- Instructions modal -->
   <div
     v-show="showInstructions"
     class="instructions-panel"
@@ -468,20 +602,14 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
     </button>
     <div class="panel-content">
       <strong> How to to build your outfit </strong>
-      <ol>
-        Click on the item box you want to add or change.
-      </ol>
-      <ol>
-        Select your desired clothing piece from the pop-up
-      </ol>
-      <ol>
-        Click on the star to favorite your outfit
-      </ol>
-      <ol>
-        View your outfits by clicking "Favorite Outfits"
-      </ol>
+      <ol>Click on the item box you want to add or change.</ol>
+      <ol>Select your desired clothing piece from the pop-up</ol>
+      <ol>Click on the star to favorite your outfit</ol>
+      <ol>View your outfits by clicking "Favorite Outfits"</ol>
     </div>
   </div>
+
+  <!-- Footer buttons -->
   <div
     style="display: flex; justify-content: center; gap: 30px; margin-top: 20px"
   >
@@ -502,4 +630,68 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+/* Only for styling the palette popup; box sizes/layout come from main.css */
+
+.palette {
+  position: absolute;
+  top: 80px;
+  left: 5%;
+  width: 600px;
+  max-width: 90vw;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+
+.palette-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.palette-close {
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  color: black; /* black X button */
+  font-weight: bold;
+  transition: transform 0.1s ease, color 0.1s ease;
+}
+
+.palette-close:hover {
+  color: #333;
+  transform: scale(1.1);
+}
+
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.palette-item img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.palette-none {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eeeeee;
+  border-radius: 8px;
+  cursor: pointer;
+  height: 100px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+</style>
