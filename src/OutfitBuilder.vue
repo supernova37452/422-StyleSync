@@ -45,6 +45,15 @@ function pickCategory(s: string) {
   closeMenus();
 }
 
+const toast = ref<string | null>(null);
+
+function showToast(msg: string) {
+  toast.value = msg;
+  setTimeout(() => {
+    toast.value = null;
+  }, 2000); // fades after 2 sec
+}
+
 /** bind to a name: fetch once + live subscribe */
 const items = ref<any[]>([]);
 let stop: null | (() => void) = null;
@@ -161,8 +170,7 @@ const openPalette = ref<string | null>(null);
 // open palette when clicking a clothing box
 function openTypePalette(type: string, slot?: "first" | "second") {
   openPalette.value = type;
-  paletteAccessorySlot.value =
-    type === "accessories" ? slot ?? "first" : null;
+  paletteAccessorySlot.value = type === "accessories" ? slot ?? "first" : null;
 }
 
 function closePalette() {
@@ -249,7 +257,8 @@ function buildCurrentSnapshot() {
   const bottom = currentSelected("bottoms");
   const shoes = currentSelected("shoes");
   const jacket = currentSelected("jackets");
-  const accessory = primaryAccessory.value; // primary accessory only
+  const accessory = primaryAccessory.value;
+  const accessory2 = secondaryAccessory.value;
 
   const category = selectedcat.value || null;
 
@@ -259,6 +268,7 @@ function buildCurrentSnapshot() {
     shoesURL: shoes?.imageURL || null,
     jacketURL: jacket?.imageURL || null,
     accessoryURL: accessory?.imageURL || null,
+    accessory2URL: accessory2?.imageURL || null,
     category,
   };
 }
@@ -292,6 +302,7 @@ async function handleStarClick() {
   try {
     if (existing) {
       await deleteFavoriteFitById(nameKey, existing.id);
+      showToast("Outfit removed from favorites.");
     } else {
       const payload: FavoriteFitPayload = {
         ...snap,
@@ -299,6 +310,7 @@ async function handleStarClick() {
         outfitName: outfitTitle.value.trim() || null,
       };
       await addFavoriteFitByName(nameKey, payload);
+      showToast("Outfit saved to favorites!");
     }
 
     favoriteFits.value = await listFavoriteFitsByName(nameKey);
@@ -322,12 +334,16 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
     shoesURL: snap.shoesURL,
     jacketURL: snap.jacketURL,
     accessoryURL: snap.accessoryURL,
+    accessory2URL: snap.accessory2URL,
     category: snap.category,
   });
 }
 </script>
 
 <template>
+  <div v-if="toast" class="toast">
+    {{ toast }}
+  </div>
   <div>
     <!-- Header -->
     <div class="header-bar">
@@ -389,7 +405,13 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
             class="palette-item palette-none"
             @click="selectNone(openPalette!)"
           >
-            <span>No {{ openPalette }} selected</span>
+            <span>
+              {{
+                openPalette === "jackets"
+                  ? "No jacket selected"
+                  : "No accessory selected"
+              }}
+            </span>
           </div>
 
           <div
@@ -490,12 +512,17 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
               gap: 10px;
             "
           >
-            <img
-              v-if="currentSelected('jackets')"
-              :src="currentSelected('jackets')!.imageURL"
-              alt="Selected jackets"
-              style="max-width: 80%; max-height: 100%; object-fit: contain"
-            />
+            <template v-if="currentSelected('jackets')">
+              <img
+                :src="currentSelected('jackets')!.imageURL"
+                alt="Selected jacket"
+                style="max-width: 80%; max-height: 100%; object-fit: contain"
+              />
+            </template>
+
+            <template v-else>
+              <span class="placeholder-text">No Jacket Selected</span>
+            </template>
           </div>
         </div>
 
@@ -511,12 +538,17 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
               gap: 10px;
             "
           >
-            <img
-              v-if="primaryAccessory"
-              :src="primaryAccessory!.imageURL"
-              alt="Selected accessory"
-              style="max-width: 80%; max-height: 100%; object-fit: contain"
-            />
+            <template v-if="primaryAccessory">
+              <img
+                :src="primaryAccessory!.imageURL"
+                alt="Selected accessory"
+                style="max-width: 80%; max-height: 100%; object-fit: contain"
+              />
+            </template>
+
+            <template v-else>
+              <span class="placeholder-text">No Accessory selected</span>
+            </template>
           </div>
         </div>
 
@@ -532,12 +564,17 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
               gap: 10px;
             "
           >
-            <img
-              v-if="secondaryAccessory"
-              :src="secondaryAccessory!.imageURL"
-              alt="Second accessory"
-              style="max-width: 80%; max-height: 100%; object-fit: contain"
-            />
+            <template v-if="secondaryAccessory">
+              <img
+                :src="secondaryAccessory!.imageURL"
+                alt="Second accessory"
+                style="max-width: 80%; max-height: 100%; object-fit: contain"
+              />
+            </template>
+
+            <template v-else>
+              <span class="placeholder-text">No Accessory selected</span>
+            </template>
           </div>
         </div>
       </div>
@@ -601,21 +638,68 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
       ×
     </button>
     <div class="panel-content">
-      <strong> How to to build your outfit </strong>
-      <ol>Click on the item box you want to add or change.</ol>
-      <ol>Select your desired clothing piece from the pop-up</ol>
-      <ol>Click on the star to favorite your outfit</ol>
-      <ol>View your outfits by clicking "Favorite Outfits"</ol>
+      <div class="panel-content">
+        <strong>How to Build Your Outfit</strong>
+
+        <ol>
+          <li>
+            Tap any box in the grid to choose a clothing item for that slot.
+            <ul>
+              <li>
+                Tops, bottoms, shoes, jackets, and up to two accessories can be
+                selected.
+              </li>
+            </ul>
+          </li>
+
+          <li>
+            When the selection panel pops up, browse through your closet items.
+            <ul>
+              <li>Tap an item to use it in your outfit.</li>
+              <li>
+                For jackets/accessories, you can also tap “No item selected” to
+                clear that slot.
+              </li>
+            </ul>
+          </li>
+
+          <li>
+            Optional: Use the “Name your outfit…” bar to give your look a title.
+            <ul>
+              <li>Example: “Fall Class Fit”, “Sunday Errands”, “Night Out”.</li>
+            </ul>
+          </li>
+
+          <li>
+            Choose a Category for your outfit (Casual, Formal, School, Work).
+          </li>
+
+          <li>
+            When your outfit looks how you want, tap the star icon to save it.
+            <ul>
+              <li>If the star is filled, the outfit is already saved.</li>
+              <li>
+                Tapping the filled star again will remove it from favorites.
+              </li>
+            </ul>
+          </li>
+
+          <li>Click the Favorite Outfits button to view all saved looks.</li>
+        </ol>
+      </div>
     </div>
   </div>
 
   <!-- Footer buttons -->
-  <div
-    style="display: flex; justify-content: center; gap: 30px; margin-top: 20px"
-  >
+  <div class="instructions-btn-wrapper">
     <button class="footer-btn left" @click="toggleInstructions">
       View Instructions
     </button>
+  </div>
+
+  <div
+    style="display: flex; justify-content: center; gap: 30px; margin-top: 20px"
+  >
     <button class="button">
       <RouterLink to="/closet" style="color: inherit; text-decoration: none">
         Closet View
@@ -644,6 +728,13 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   z-index: 100;
+}
+
+.instructions-btn-wrapper {
+  position: fixed;
+  bottom: 100px;
+  left: 30px;
+  z-index: 200;
 }
 
 .palette-header {
@@ -693,5 +784,46 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
   height: 100px;
   font-size: 13px;
   opacity: 0.8;
+}
+.placeholder-text {
+  font-size: 12px;
+  color: #555;
+  opacity: 0.8;
+  text-align: center;
+  padding: 4px;
+  line-height: 1.2;
+}
+
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #2c2b3c;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  animation: fadeInOut 2s ease forwards;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 </style>
