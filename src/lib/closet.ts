@@ -62,13 +62,13 @@ export function subscribeClosetItemsByName(
 }
 
 // favoriting outfit helpers
-
 export type FavoriteFitPayload = {
   topURL?: string | null;
   bottomURL?: string | null;
   shoesURL?: string | null;
   jacketURL?: string | null;
   accessoryURL?: string | null;
+  accessory2URL?: string | null;
   category: string | null;
   key: string; // unique signature for this combo
   outfitName?: string | null;

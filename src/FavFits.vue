@@ -174,7 +174,7 @@ function getSlotsFromFit(fit: any) {
       <section class="fav-cards">
         <div v-if="filteredFits.length === 0" class="empty-state">
           <p>No favorite outfits yet.</p>
-          <p>Go to the Outfit Builder and tap the star to save a look ✨</p>
+          <p>Go to the Outfit Builder and tap the star to save a look</p>
         </div>
 
         <!-- Outfit cards -->
@@ -219,7 +219,7 @@ function getSlotsFromFit(fit: any) {
     >
       <button class="button">
         <RouterLink to="/closet" style="color: inherit; text-decoration: none">
-          Closet View
+          Back To Closet
         </RouterLink>
       </button>
 
@@ -310,6 +310,7 @@ function getSlotsFromFit(fit: any) {
   background: transparent;
   font-size: 16px;
   cursor: pointer;
+  color: #000000;
 }
 
 /* 2 x 3 grid of white boxes; boxes only appear for existing items */
