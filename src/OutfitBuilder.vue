@@ -580,37 +580,31 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
       </div>
 
       <!-- category stuff -->
-      <aside class="tagging-rail fit-rail-items">
-        <div class="star-container">
+      <!-- category stuff -->
+      <aside class="fit-rail-items right-rail">
+        <div class="right-controls">
           <img
             :src="
               isCurrentFavorited ? '/icons/starfilled.png' : '/icons/star.png'
             "
-            alt="Favorite star"
             class="star-icon"
             @click="handleStarClick"
           />
-        </div>
 
-        <div class="title-row">
           <input
             type="text"
             class="title-input"
             placeholder="Name your outfit..."
             v-model="outfitTitle"
           />
-        </div>
 
-        <div class="tagging">
-          <h3></h3>
-          <h3></h3>
-          <h3></h3>
           <div class="tag-dropdown" :class="{ open: openMenu === 'season' }">
             <button class="tag-trigger" @click.stop="toggleMenu('season')">
               <span class="label">Categories:</span>
-              <span class="value">{{ selectedcat }}</span>
+              <span class="value">{{ selectedcat || "Pick a category" }}</span>
               <span class="chev">▾</span>
             </button>
+
             <div v-if="openMenu === 'season'" class="menu">
               <button
                 v-for="s in catOptions"
@@ -823,5 +817,48 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
     opacity: 0;
     transform: translateY(-10px);
   }
+}
+.right-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px; /* tweak this number for how tight/loose you want it */
+}
+
+.tagging {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.title-input,
+.tag-trigger {
+  width: 300px; /* same exact width */
+  max-width: 300px;
+  min-width: 250px;
+  box-sizing: border-box;
+}
+
+.tag-trigger {
+  font-size: 16px; /* same size */
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+.tag-trigger .label,
+.tag-trigger .value {
+  font-size: 16px;
+}
+.right-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centers the star + both inputs */
+  gap: 16px; /* space between star → input → dropdown */
+  margin-top: 20px; /* adjust as needed */
+}
+
+.star-icon {
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
 }
 </style>
