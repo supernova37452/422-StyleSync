@@ -666,13 +666,11 @@ function makeOutfitKey(snap: ReturnType<typeof buildCurrentSnapshot>): string {
           <li>
             Optional: Use the “Name your outfit…” bar to give your look a title.
             <ul>
-              <li>Example: “Fall Class Fit”, “Sunday Errands”, “Night Out”.</li>
+              <li>Example: “Night Out”.</li>
             </ul>
           </li>
 
-          <li>
-            Choose a Category for your outfit (Casual, Formal, School, Work).
-          </li>
+          <li>Choose a Category for your outfit</li>
 
           <li>
             When your outfit looks how you want, tap the star icon to save it.
