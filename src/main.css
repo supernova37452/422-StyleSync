@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   overflow-x: hidden;
 }
 
@@ -12,17 +13,17 @@ html, body {
   margin: 0;
   font-weight: 500;
 } */
+
 .header-bar {
   display: flex;
-  align-items: center; 
+  align-items: center;
   justify-content: space-between;
-  padding: 20px 20px 0; 
+  padding: 20px 20px 0;
   flex: 1;
   text-align: center;
   margin: 0;
   font-weight: 500;
 }
-
 
 .header-left {
   display: flex;
@@ -45,7 +46,6 @@ html, body {
   font-size: 0.9rem;
   font-weight: 600;
 }
-
 
 button {
   background-color: #8581ce;
@@ -88,9 +88,7 @@ button {
   border-radius: 6px;
 }
 
-
 /* shoved all the outfit stuff in here idk */
-
 
 .fit-groups {
   display: flex;
@@ -151,23 +149,21 @@ button {
   isolation: isolate;
 }
 
-
-
 /* palette grid */
 
 /* LEFT PALETTE AREA */
 .palette {
   position: fixed;
-  left: 55px;                 /* adds gap from left edge */
+  left: 55px; /* adds gap from left edge */
   top: 120px;
   width: 320px;
   padding: 14px;
-  background: #ffffff;        
+  background: #ffffff;
   border: 2px solid #e6e6e6;
   border-radius: 14px;
   height: calc(100vh - 300px);
   overflow-y: auto;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12); /* shadow */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); /* shadow */
   z-index: 20;
 }
 
@@ -210,10 +206,10 @@ button {
 }
 
 .title-row {
-  flex-direction: row;      
-  align-items: center;    
-  gap: 10px;  
-  width: 100%;      
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
 .title-label {
@@ -290,9 +286,9 @@ button {
 }
 
 .remove-bg-btn {
-  width: 100%;       
-  padding: 14px 20px;     
-  border-radius: 14px;      
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 14px;
   border: none;
   background: #8581ce;
   color: #fff;
@@ -301,7 +297,7 @@ button {
   text-align: center;
   cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
-  margin-top: 4px;  
+  margin-top: 4px;
 }
 
 .remove-bg-btn:hover:not([disabled]):not([aria-disabled="true"]) {
@@ -314,7 +310,6 @@ button {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 
 .bottom-buttons {
   position: fixed;
@@ -367,10 +362,10 @@ button {
   position: fixed;
   bottom: 110px;
   left: 30px;
-  width: 300px;
+  width: 360px;
   max-width: 90vw;
   min-height: 540px;
-  max-height: 480px;
+  max-height: 650px;
   background-color: #8581ce;
   color: #fff;
   border-radius: 28px;
@@ -479,7 +474,6 @@ button {
   cursor: not-allowed;
   box-shadow: none;
 }
-
 
 .placeholder-icon {
   width: 160px;
@@ -592,7 +586,7 @@ button {
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
   z-index: 1001;
   max-height: 190px;
-  overflow-y: auto;  
+  overflow-y: auto;
   scrollbar-width: thick;
   scrollbar-color: #ffffff rgba(255, 255, 255, 0.25);
 }
@@ -633,8 +627,6 @@ button {
   font-weight: 600;
 } */
 
-
-
 .menu-item {
   width: 100%;
   border: 0;
@@ -666,4 +658,8 @@ button {
   padding: 0;
   height: 0;
   line-height: 0;
+}
+
+* {
+  font-family: "DM Sans", sans-serif !important;
 }

@@ -238,7 +238,7 @@ function getSlotsFromFit(fit: any) {
 <style scoped>
 /* main layout for content area */
 .fav-content {
-  width: min(1400px, 96vw); /* a bit wider so 4 cards feel roomy */
+  width: min(1700px, 96vw); /* a bit wider so 4 cards feel roomy */
   margin: 20px 0 60px 0;
   display: grid;
   grid-template-columns: 180px 1fr;
@@ -279,6 +279,18 @@ function getSlotsFromFit(fit: any) {
   display: grid;
   grid-template-columns: repeat(4, minmax(280px, 1fr));
   gap: 24px;
+
+  /* 🔹 scrollable area */
+  max-height: 700px; /* ~2 rows of cards visible */
+  max-width: 100%;
+  overflow-y: auto;
+  padding-right: 8px; /* room so scrollbar doesn’t cover cards */
+}
+
+@media (min-width: 1600px) {
+  .fav-cards {
+    grid-template-columns: repeat(5, minmax(260px, 1fr));
+  }
 }
 
 /* individual outfit card */
